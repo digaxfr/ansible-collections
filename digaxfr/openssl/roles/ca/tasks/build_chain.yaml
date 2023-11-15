@@ -1,0 +1,18 @@
+---
+- name: Slurp up root CA cert
+  ansible.builtin.slurp:
+    src: '{{ openssl_root_path }}/certs/ca.crt'
+  register: _slurp_root_ca
+
+- name: Slurp up intermediate CA cert
+  ansible.builtin.slurp:
+    src: '{{ openssl_stateful_path }}/certs/ca.crt'
+  register: _slurp_intermediate_ca
+
+- name: Template out bundle
+  ansible.builtin.template:
+    src: ca-chain.crt.j2
+    dest: '{{ openssl_stateful_path }}/certs/ca-chain.crt'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0644

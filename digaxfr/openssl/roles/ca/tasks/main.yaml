@@ -1,0 +1,164 @@
+---
+- name: Normal asserts
+  ansible.builtin.assert:
+    that:
+    - openssl_stateful_path is defined
+    - openssl_ca_type is defined
+    - openssl_ca_type in _ca_types
+  vars:
+    _ca_types:
+    - root
+    - intermediate
+
+- name: Intermediate asserts
+  ansible.builtin.assert:
+    that:
+    - openssl_root_path is defined
+    - openssl_intermediate_cn is defined
+    - openssl_root_path != openssl_stateful_path
+  when: openssl_ca_type == 'intermediate'
+
+- name: Create stateful directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0700
+  loop:
+  - '{{ openssl_stateful_path }}'
+  - '{{ openssl_stateful_path }}/certs'
+  - '{{ openssl_stateful_path }}/crl'
+  - '{{ openssl_stateful_path }}/csr'
+  - '{{ openssl_stateful_path }}/newcerts'
+  - '{{ openssl_stateful_path }}/private'
+
+- name: Check for serial file
+  ansible.builtin.stat:
+    path: '{{ openssl_stateful_path }}/serial'
+  register: _stat_serial
+
+- name: Create initial serial file
+  ansible.builtin.copy:
+    content: '{{ openssl.default_init_serial }}'
+    dest: '{{ openssl_stateful_path }}/serial'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0640
+  when: not _stat_serial.stat.exists
+
+- name: Check for CRL number file
+  ansible.builtin.stat:
+    path: '{{ openssl_stateful_path }}/crlnumber'
+  register: _stat_crlnumber
+
+- name: Create CRL number file
+  ansible.builtin.copy:
+    content: '{{ openssl.default_init_serial }}'
+    dest: '{{ openssl_stateful_path }}/crlnumber'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0640
+  when: not _stat_crlnumber.stat.exists
+
+- name: Check for index.txt
+  ansible.builtin.stat:
+    path: '{{ openssl_stateful_path }}/index.txt'
+  register: _stat_index
+
+- name: Create index.txt
+  ansible.builtin.copy:
+    content: ''
+    dest: '{{ openssl_stateful_path }}/index.txt'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0640
+  when: not _stat_index.stat.exists
+
+- name: Configure openssl.cnf
+  ansible.builtin.template:
+    src: openssl-{{ openssl_ca_type }}.cnf.j2
+    dest: '{{ openssl_stateful_path }}/openssl.cnf'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0640
+
+- name: Configure auxiliary cnf files
+  ansible.builtin.template:
+    src: '{{ item }}.j2'
+    dest: '{{ openssl_stateful_path }}/{{ item }}'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0640
+  loop:
+  - mtls_clientauth_cert.cnf
+  - mtls_clientauth_serverauth_cert.cnf
+  - mtls_serverauth_cert.cnf
+
+- name: Check for private key
+  ansible.builtin.stat:
+    path: '{{ openssl_stateful_path }}/private/ca.key'
+  register: _stat_private_key
+
+- name: Create private key
+  ansible.builtin.command: >
+    openssl genrsa -out {{ openssl_stateful_path }}/private/ca.key 4096
+  when: not _stat_private_key.stat.exists
+
+- name: Ensure private key permissions are strict
+  ansible.builtin.file:
+    path: '{{ openssl_stateful_path }}/private/ca.key'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: 0600
+
+- name: Check for CA cert
+  ansible.builtin.stat:
+    path: '{{ openssl_stateful_path }}/certs/ca.crt'
+  register: _stat_cacert
+
+- name: Generate Root CA
+  ansible.builtin.command: >-
+    openssl req -config {{ openssl_stateful_path}}/openssl.cnf
+        -key {{ openssl_stateful_path }}/private/ca.key
+        -new
+        -x509
+        -days 7300
+        -sha256
+        -extensions v3_ca
+        -out {{ openssl_stateful_path }}/certs/ca.crt
+        -subj "/C=US/ST=New York/L=New York/O=dchin.dev/OU=Lab/CN=Root CA"
+  when:
+  - openssl_ca_type == 'root'
+  - not _stat_cacert.stat.exists
+
+- name: Generate Intermediate CA CSR
+  ansible.builtin.command: >-
+    openssl req -config {{ openssl_stateful_path }}/openssl.cnf
+        -key {{ openssl_stateful_path }}/private/ca.key
+        -new
+        -sha256
+        -out {{ openssl_stateful_path }}/certs/ca.csr
+        -subj '/C=US/ST=New York/L=New York/O=dchin.dev/OU=Lab/CN={{ openssl_intermediate_cn }}'
+  when:
+  - openssl_ca_type == 'intermediate'
+  - not _stat_cacert.stat.exists
+
+- name: Sign CSR with Root CA
+  ansible.builtin.command: >-
+    openssl ca -config {{ openssl_root_path }}/openssl.cnf
+      -extensions v3_intermediate_ca
+      -days 3650
+      -notext
+      -md sha256
+      -batch
+      -in '{{ openssl_stateful_path }}/certs/ca.csr'
+      -out '{{ openssl_stateful_path }}/certs/ca.crt'
+  when:
+  - openssl_ca_type == 'intermediate'
+  - not _stat_cacert.stat.exists
+
+- name: Generate CA bundle for intermediates
+  ansible.builtin.include_tasks:
+    file: build_chain.yaml
+  when: openssl_ca_type == 'intermediate'
