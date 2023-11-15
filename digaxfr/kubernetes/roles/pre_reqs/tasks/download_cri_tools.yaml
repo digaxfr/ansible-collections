@@ -1,0 +1,27 @@
+---
+- name: Create directory
+  ansible.builtin.file:
+    path: /opt/cri-tools
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Get file
+  ansible.builtin.get_url:
+    url: '{{ cri_tools[ansible_architecture].url }}'
+    dest: /opt/cri-tools/cri-tools.tar.gz
+    owner: root
+    group: root
+    mode: 0644
+    checksum: 'sha256:{{ cri_tools[ansible_architecture].checksum }}'
+
+# This tarball has no directory structure.
+- name: Unpack
+  ansible.builtin.unarchive:
+    src: /opt/cri-tools/cri-tools.tar.gz
+    dest: /usr/local/bin/
+    remote_src: yes
+    owner: root
+    group: root
+    mode: 0755

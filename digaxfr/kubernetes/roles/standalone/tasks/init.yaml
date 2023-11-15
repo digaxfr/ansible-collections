@@ -1,0 +1,33 @@
+---
+- name: Tempdir
+  ansible.builtin.tempfile:
+    state: directory
+  register: _temp
+
+- block:
+  - name: Template kubeadm
+    ansible.builtin.template:
+      src: kubeadm.yaml.j2
+      dest: '{{ _temp.path }}/kubeadm.yaml'
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: Init
+    ansible.builtin.command: >
+      kubeadm init --skip-token-print --config {{ _temp.path }}/kubeadm.yaml
+    register: _kubeadm_init
+
+  always:
+  - name: Cleanup
+    ansible.builtin.file:
+      path: '{{ _temp.path }}'
+      state: absent
+
+  - name: Show kubeadm output
+    ansible.builtin.debug:
+      var: _kubeadm_init.stdout_lines
+
+  - name: Show kubeadm output
+    ansible.builtin.debug:
+      var: _kubeadm_init.stderr_lines
