@@ -1,0 +1,62 @@
+---
+# This role does not check for existing files. The reasoning is that new certs
+# being cut all the time is fine.
+- name: Aseerts
+  ansible.builtin.assert:
+    that:
+      - ca_stateful_path is defined
+      - cert_cn is defined
+
+- name: Asserts (mTLS)
+  vars:
+    mtls_types:
+      - clientauth
+      - clientauth_serverauth
+      - serverauth
+  ansible.builtin.assert:
+    that:
+      - mtls_type in mtls_types
+  when: mtls_type is defined
+
+- name: Check if a private key exists already
+  ansible.builtin.stat:
+    path: '{{ ca_stateful_path }}/private/{{ cert_cn }}.key'
+  register: _stat_key
+
+- name: Generate a private key
+  ansible.builtin.command: >-
+    openssl genrsa -out {{ ca_stateful_path }}/private/{{ cert_cn }}.key 4096
+  changed_when: true
+  when: not _stat_key.stat.exists
+
+- name: Template out SAN config
+  ansible.builtin.template:
+    src: extensions.cnf.j2
+    dest: '{{ ca_stateful_path }}/private/{{ cert_cn }}_extensions.cnf'
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: '0640'
+  when: sans is defined
+
+- name: Generate a CSR
+  ansible.builtin.command: >-
+    openssl req -new
+      -key {{ ca_stateful_path }}/private/{{ cert_cn }}.key
+      -out {{ ca_stateful_path }}/private/{{ cert_cn }}.csr
+      -subj '/C=US/ST=New York/L=New York/O=dchin.dev/OU=Lab/CN={{ cert_cn }}'
+      -config {{ ca_stateful_path }}/private/{{ cert_cn }}_extensions.cnf
+  changed_when: true
+
+- name: Cut the cert
+  ansible.builtin.command: >-
+    openssl x509 -req
+      -in {{ ca_stateful_path }}/private/{{ cert_cn }}.csr
+      -CA {{ ca_stateful_path }}/certs/ca-chain.crt
+      -CAkey {{ ca_stateful_path }}/private/ca.key
+      -out {{ ca_stateful_path }}/certs/{{ cert_cn }}.crt
+      -CAcreateserial
+      -days 365
+      -sha256
+      -extfile {{ ca_stateful_path }}/private/{{ cert_cn }}_extensions.cnf
+      -extensions custom_extensions
+  changed_when: true

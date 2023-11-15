@@ -1,0 +1,5 @@
+---
+- name: Instal OpenSSL
+  ansible.builtin.apt:
+    name: openssl
+    state: present
