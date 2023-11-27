@@ -1,0 +1,44 @@
+---
+- name: NetworkManager configurations
+  ansible.builtin.template:
+    src: 10-managed-devices.conf.j2
+    dest: /etc/NetworkManager/conf.d/10-managed-devices.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart NetworkManager
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+# In the future, add production/ethernet interfaces here.
+
+# Leaving this in here. Apparently when doing an include with the funky
+# business on the loop line, Ansible will run serial=1 essentially on the
+# includes.
+#- name: Configure vlan interfaces
+#  ansible.builtin.include_tasks: vlan.yaml
+#  loop: '{{ host_networking.interfaces | dict2items | selectattr("value.type", "==", "vlan") }}'
+#  when: '_interface.value.type == "vlan"'
+#  loop_control:
+#    loop_var: _interface
+
+- name: Template out configs
+  ansible.builtin.template:
+    src: vlan.nmconnection.j2
+    dest: /etc/NetworkManager/system-connections/{{ _interface.key }}.nmconnection
+    owner: root
+    group: root
+    mode: '0600'
+  loop: '{{ host_networking.interfaces | dict2items | selectattr("value.type", "==", "vlan") }}'
+  loop_control:
+    loop_var: _interface
+  register: _vlan_config
+
+- name: Load config
+  ansible.builtin.command: |-
+    nmcli conn load /etc/NetworkManager/system-connections/{{ item._interface.key }}.nmconnection
+  loop: '{{ _vlan_config.results }}'
+  loop_control:
+    label: '{{ item._interface.key }}'
+  when: 'item.changed'

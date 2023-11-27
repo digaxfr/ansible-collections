@@ -1,0 +1,4 @@
+---
+- name: Force apt-get update
+  ansible.builtin.apt:
+    update_cache: yes

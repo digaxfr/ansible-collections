@@ -1,0 +1,14 @@
+---
+baseline_debian_packages:
+- apparmor
+- apt-transport-https
+- bind9-dnsutils
+- ca-certificates
+- conntrack
+- curl
+- file
+- jq
+- lsof
+- socat
+- tcpdump
+- vim
