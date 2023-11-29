@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Route Flipper every minute
+After=frr.service
+
+[Timer]
+OnUnitActiveSec=1min
+OnBootSec=1min
+
+[Install]
+WantedBy=timers.target

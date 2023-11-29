@@ -1,0 +1,51 @@
+# Ansible managed
+
+frr version 7.5.1
+frr defaults traditional
+hostname {{ ansible_hostname }}
+ipv6 router-id {{ ansible_default_ipv6.address }}
+log syslog informational
+service integrated-vtysh-config
+!
+{% for bgp in frr_configs.bgp.asns %}
+router bgp {{ bgp }}
+ bgp router-id {{ frr_configs.bgp.asns[bgp]['router_id'] }}
+ bgp bestpath as-path multipath-relax
+{% for peer_k, peer_v in frr_configs.bgp.asns[bgp]['peers'].items() %}
+ neighbor {{ peer_v['peer_ip6'] }} remote-as {{ peer_v['asn'] }}
+{% endfor %}
+ !
+ address-family ipv6 unicast
+{% for network in frr_configs.bgp.asns[bgp]['local_networks'] %}
+ network {{ network }}
+{% endfor %}
+{% for peer_k, peer_v in frr_configs.bgp.asns[bgp]['peers'].items() %}
+ neighbor {{ peer_v['peer_ip6'] }} activate
+ neighbor {{ peer_v['peer_ip6'] }} soft-reconfiguration inbound
+{% if peer_v['default_originate_downstream'] %}
+ neighbor {{ peer_v['peer_ip6'] }} default-originate
+{% endif %}
+ neighbor {{ peer_v['peer_ip6'] }} route-map {{ peer_k }}-in in
+ neighbor {{ peer_v['peer_ip6'] }} route-map {{ peer_k }}-out out
+{% endfor %}
+ maximum-paths 4
+ exit-address-family
+{% endfor %}
+!
+{% for bgp_k, bgp_v in frr_configs.bgp.asns.items() %}
+{% for peer_k, peer_v in bgp_v['peers'].items() %}
+{% for prefix in peer_v['prefix_list_in'] %}
+ipv6 prefix-list {{ peer_k }}-in {{ prefix }}
+{% endfor %}
+{% for prefix in peer_v['prefix_list_out'] %}
+ipv6 prefix-list {{ peer_k }}-out {{ prefix }}
+{% endfor %}
+route-map {{ peer_k }}-in permit 10
+ match ipv6 address prefix-list {{ peer_k }}-in
+route-map {{ peer_k }}-out permit 10
+ match ipv6 address prefix-list {{ peer_k }}-out
+{% endfor %}
+{% endfor %}
+!
+line vty
+!
