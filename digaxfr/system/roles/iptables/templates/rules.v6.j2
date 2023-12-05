@@ -33,4 +33,10 @@ COMMIT
 -A INPUT -m conntrack --ctstate NEW -p tcp --dport 2380 -s {% for host in groups['etcd'] %}{{ hostvars[host].ansible_default_ipv6.address }}{% if not loop.last %},{% endif %}{% endfor %} -j ACCEPT
 {% endif %}
 
+{% if host_networking.ip6tables.additional_rules.filter is defined %}
+{% for rule in host_networking.ip6tables.additional_rules.filter %}
+{{ rule }}
+{% endfor %}
+{% endif %}
+
 COMMIT
