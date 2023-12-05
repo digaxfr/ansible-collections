@@ -14,7 +14,7 @@
 
 set -e
 
-primary_iface=enp1s0
+primary_iface="{{ host_networking.mgmt_iface }}"
 
 # First detect if we are already have the default-originate route installed.
 if ip -6 route get ::0 | grep --silent "proto bgp"; then

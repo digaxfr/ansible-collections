@@ -42,6 +42,7 @@ ipv6 prefix-list {{ peer_k }}-out {{ prefix }}
 {% endfor %}
 route-map {{ peer_k }}-in permit 10
  match ipv6 address prefix-list {{ peer_k }}-in
+ set ipv6 next-hop prefer-global
 route-map {{ peer_k }}-out permit 10
  match ipv6 address prefix-list {{ peer_k }}-out
 {% endfor %}
