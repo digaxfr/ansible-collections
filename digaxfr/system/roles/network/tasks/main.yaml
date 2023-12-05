@@ -35,6 +35,7 @@
     loop_var: _interface
   register: _vlan_config
 
+# TODO: This doesn't work with changes to IPs.
 - name: Load config
   ansible.builtin.command: |-
     nmcli conn load /etc/NetworkManager/system-connections/{{ item._interface.key }}.nmconnection
