@@ -1,0 +1,9 @@
+---
+kube_cluster_name: kuchanetes
+kube_version: 1.27.1
+
+# Allocated non-routed IPv6 subnets for Kubernetes
+kube_cidr: fd73:6172:6168:200::/56
+kube_pod_subnet: fd73:6172:6168:200::/60
+kube_service_subnet: fd73:6172:6168:210::/112   # Really a/60
+kube_routed_networks: false

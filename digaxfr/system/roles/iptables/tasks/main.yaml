@@ -1,0 +1,38 @@
+---
+- name: Install iptables
+  ansible.builtin.apt:
+    name: '{{ iptables_packages }}'
+    state: present
+
+- name: Check to see if nftables service exists
+  ansible.builtin.stat:
+    path: /lib/systemd/system/nftables.service
+  register: _nftables_stat
+
+- name: Ensure nftables is not conflicting
+  ansible.builtin.systemd:
+    name: nftables
+    enabled: false
+    state: stopped
+  when: _nftables_stat.stat.exists
+
+- name: Template out iptables configuration
+  ansible.builtin.template:
+    src: '{{ item }}.j2'
+    dest: '/etc/iptables/{{ item }}'
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - rules.v4
+    - rules.v6
+  notify: restart iptables
+
+- name: Systemd
+  ansible.builtin.systemd:
+    name: '{{ iptables_systemd_name | trim }}'
+    enabled: true
+    state: started
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

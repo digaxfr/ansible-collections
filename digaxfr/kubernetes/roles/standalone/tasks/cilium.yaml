@@ -1,0 +1,65 @@
+---
+- name: Ensure directory exists
+  ansible.builtin.file:
+    path: /opt/cilium-cli
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Check to see if cilium_cli tarball exists
+  ansible.builtin.stat:
+    path: '/opt/cilium-cli/cilium-cli-{{ cilium_cli_version }}.tar.gz'
+    checksum_algorithm: sha256
+  register: _stat_cilium_cli_tarball
+
+- name: Get tarball
+  ansible.builtin.get_url:
+    url: '{{ cilium_cli[ansible_architecture].url }}'
+    dest: '/opt/cilium-cli/cilium-cli-{{ cilium_cli_version }}.tar.gz'
+    owner: root
+    group: root
+    mode: 0644
+    checksum: 'sha256:{{ cilium_cli[ansible_architecture].checksum }}'
+  when: (not _stat_cilium_cli_tarball.stat.exists) or (_stat_cilium_cli_tarball.stat.checksum != cilium_cli[ansible_architecture].checksum)
+
+# Tarball unpacks to just binary.
+- name: Unarchive
+  ansible.builtin.unarchive:
+    src: '/opt/cilium-cli/cilium-cli-{{ cilium_cli_version }}.tar.gz'
+    dest: /usr/local/bin/
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: yes
+  when: (not _stat_cilium_cli_tarball.stat.exists) or (_stat_cilium_cli_tarball.stat.checksum != cilium_cli[ansible_architecture].checksum)
+
+# Add idempotency.
+- block:
+  - name: Install Cilium
+    ansible.builtin.command: >
+      cilium install
+      --helm-set=enableIPv4Masquerade=false
+      {% if kube_routed_networks %}
+      --helm-set=enableIPv6Masquerade=false
+      {% else %}
+      --helm-set=enableIPv6Masquerade=true
+      {% endif %}
+      --helm-set=ipam.operator.clusterPoolIPv6MaskSize=64
+      --helm-set=ipam.operator.clusterPoolIPv6PodCIDRList={{ kube_pod_subnet }}
+      --helm-set=ipv4.enabled=false
+      --helm-set=ipv6.enabled=true
+      --helm-set=ipv6NativeRoutingCIDR={{ kube_pod_subnet }}
+      --helm-set=k8sServiceHost={{ kube_service_subnet | ansible.utils.ipaddr(1) | ansible.utils.ipaddr("address") }}
+      --helm-set=k8sServicePort=443
+      --helm-set=kubeProxyReplacement=strict
+      --helm-set=tunnel=disabled
+    register: _cilium_install
+
+  always:
+  - name: Show cilium output
+    ansible.builtin.debug:
+      var: '{{ item }}'
+    loop:
+    - _cilium_install.stdout_lines
+    - _cilium_install.stderr_lines

@@ -1,0 +1,67 @@
+---
+cri_tools_version: 1.27.0
+kubernetes_node_version: 1.27.1
+
+cri_tools:
+  aarch64:
+    checksum: 9317560069ded8e7bf8b9488fdb110d9e62f0fbc0e33ed09fe972768b47752bd
+    url: 'https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ cri_tools_version }}/crictl-v{{ cri_tools_version }}-linux-arm64.tar.gz'
+
+# Deprecated
+#kubernetes_node:
+#  aarch64:
+#    checksum: 94579d7a3cb146ceffc0af42b5fd886510041fec0a5d5e9c2383e91ae3f6dd663b9691193f67646f38265195757f04bcc55e17ea3fc414174c375e672249c606
+#    url: 'https://dl.k8s.io/v{{ kubernetes_node_version }}/kubernetes-node-linux-arm64.tar.gz'
+
+kubernetes_binaries:
+  aarch64:
+    apiextensions-apiserver:
+      checksum: 15e8d771cc0bea28449c17e9f588869b357b7ae91af5ac105367f1dca54933bc
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/apiextensions-apiserver
+    kube-aggregator:
+      checksum: affc7fd642cbab7a94d2ab85dbd9af37a204108877867db360a4681b77c90be3
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kube-aggregator
+    kube-apiserver:
+      checksum: 79d65d42d8cd6cc058a06ef031b3662678ef6e507c1c0a3c4d9043e6ef1bca51
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kube-apiserver
+    kube-controller-manager:
+      checksum: a62a9c8fbc5e3c364fe3736333bd53572d8717a69189d37be15bfd6ffb045c1d
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kube-controller-manager
+    kube-log-runner:
+      checksum: f4b729c0d814affc630efcac98d3f192edfd11da93386cfcb9abcba137b8d9bd
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kube-log-runner
+    kube-proxy:
+      checksum: 66722ea5e20577f07ed74d95743ac844ebc9e0c262c86d7689d927857ca478e7
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kube-proxy
+    kube-scheduler:
+      checksum: fb5c78e7034daebdc84b754b84b608a79f19f7090efa14f4b6c21e8ed5e25696
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kube-scheduler
+    kubeadm:
+      checksum: 024a59cd6fc76784b597c0c1cf300526e856e8c9fefa5fa7948158929b739551
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kubeadm
+    kubectl:
+      checksum: fd3cb8f16e6ed8aee9955b76e3027ac423b6d1cc7356867310d128082e2db916
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kubectl
+    kubectl-convert:
+      checksum: 010e86055bd96b923b600cda4cc0e036997c601fbfbc214a0d99a5694ae1f2fa
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kubectl-convert
+    kubelet:
+      checksum: dbb09d297d924575654db38ed2fc627e35913c2d4000c34613ac6de4995457d0
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/kubelet
+    mounter:
+      checksum: eb5fe8d74bb258d6f65d8ddda6af2a9a374ab24083ad46688a4e9abebca0ea7b
+      url: https://dl.k8s.io/v1.27.1/bin/linux/arm64/mounter
+
+kube_modules:
+- br_netfilter
+- overlay
+
+kube_sysctl:
+- name: net.bridge.bridge-nf-call-iptables
+  value: 1
+- name: net.bridge.bridge-nf-call-ip6tables
+  value: 1
+- name: net.ipv4.conf.all.forwarding
+  value: 1
+- name: net.ipv6.conf.all.forwarding
+  value: 1
