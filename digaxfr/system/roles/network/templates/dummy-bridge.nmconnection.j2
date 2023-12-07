@@ -1,0 +1,11 @@
+[connection]
+autoconnect=yes
+id=dummy-{{ _interface.key }}
+interface-name=dummy-{{ _interface.key }}
+master={{ _interface.key }}
+slave-type=bridge
+type=dummy
+
+[dummy]
+
+[bridge-port]

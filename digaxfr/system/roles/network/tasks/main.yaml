@@ -23,23 +23,42 @@
 #  loop_control:
 #    loop_var: _interface
 
+# We do != ethernet for now because I am too lazy.
 - name: Template out configs
   ansible.builtin.template:
-    src: vlan.nmconnection.j2
+    src: '{{ _interface.value.type }}.nmconnection.j2'
     dest: /etc/NetworkManager/system-connections/{{ _interface.key }}.nmconnection
     owner: root
     group: root
     mode: '0600'
-  loop: '{{ host_networking.interfaces | dict2items | selectattr("value.type", "==", "vlan") }}'
+  loop: '{{ host_networking.interfaces | dict2items | selectattr("value.type", "!=", "ethernet") }}'
   loop_control:
     loop_var: _interface
-  register: _vlan_config
+  notify: restart NetworkManager
 
-# TODO: This doesn't work with changes to IPs.
-- name: Load config
-  ansible.builtin.command: |-
-    nmcli conn load /etc/NetworkManager/system-connections/{{ item._interface.key }}.nmconnection
-  loop: '{{ _vlan_config.results }}'
+# This allows us to forcibly bring up bridge interfaces.
+- name: Template out dummy-bridge configs
+  ansible.builtin.template:
+    src: dummy-bridge.nmconnection.j2
+    dest: /etc/NetworkManager/system-connections/dummy-{{ _interface.key }}.nmconnection
+    owner: root
+    group: root
+    mode: '0600'
+  loop: '{{ host_networking.interfaces | dict2items | selectattr("value.type", "==", "bridge") }}'
   loop_control:
-    label: '{{ item._interface.key }}'
-  when: 'item.changed'
+    loop_var: _interface
+  notify: restart NetworkManager
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+# For above, alternatively we can be lazy and just restart NetworkManager. YOLO.
+
+# TODO: This doesn't work with changes; need to down and up the connection.
+#- name: Load config
+#  ansible.builtin.command: |-
+#    nmcli conn load /etc/NetworkManager/system-connections/{{ item._interface.key }}.nmconnection
+#  loop: '{{ _net_config.results }}'
+#  loop_control:
+#    label: '{{ item._interface.key }}'
+#  when: 'item.changed'
