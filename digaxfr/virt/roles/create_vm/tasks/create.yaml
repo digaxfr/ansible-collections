@@ -1,0 +1,65 @@
+---
+- name: Create VM image directory
+  ansible.builtin.file:
+    path: /var/lib/libvirt/images/{{ inventory_hostname }}
+    state: directory
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: '0750'
+
+- name: Copy base image
+  ansible.builtin.copy:
+#    src: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
+    src: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
+    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2
+    remote_src: true
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: '0750'
+
+- name: Resize the root image
+  ansible.builtin.command: >
+    qemu-img resize /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2 {{ virt_disks[0].size_gb }}G
+  changed_when: true
+
+- name: Template out cloud-init files
+  ansible.builtin.template:
+    src: '{{ item }}.j2'
+    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/{{ item }}
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: '0640'
+  loop:
+    - meta-data
+    - user-data
+    - network-config
+
+- name: Generate ISO image
+  ansible.builtin.command: >
+    mkisofs -o /var/lib/libvirt/images/{{ inventory_hostname }}/cloud-init.iso -V cidata -J -r
+    /var/lib/libvirt/images/{{ inventory_hostname }}/user-data
+    /var/lib/libvirt/images/{{ inventory_hostname }}/meta-data
+    /var/lib/libvirt/images/{{ inventory_hostname }}/network-config
+  changed_when: true
+
+- name: Template out domain file
+  ansible.builtin.template:
+    src: domain.xml.j2
+    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: '0640'
+
+- name: Copy NVRAM file
+  ansible.builtin.copy:
+    src: /usr/share/AAVMF/AAVMF_VARS.fd
+    dest: /var/lib/libvirt/qemu/nvram/{{ inventory_hostname }}_VARS.fd
+    remote_src: true
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: '0660'
+
+- name: Define domain
+  ansible.builtin.command: >
+    virsh define /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
+  changed_when: true

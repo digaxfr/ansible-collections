@@ -1,0 +1,51 @@
+# Both versions
+#version: 1
+#config:
+#- type: physical
+#  name: enp1s0
+#  subnets:
+#  - type: static6
+#    address: fd73:6172:6168:a14::aaaa/64
+#    gateway: fd73:6172:6168:a14::1
+#
+# Old style left in for a reminder of things.
+# New style is to take [0] NIC only. That should always be our management interface.
+# Any additional NICs will be set up post-boot by Ansible/external forces.
+
+#version: 2
+#ethernets:
+#  enp1s0:
+#    dhcp4: false
+#    dhcp6: false
+#    addresses:
+#{% for net in virt_networks %}
+#    - {{ net.ip6_addr }}/{{ net.ip6_prefix_len }}
+#{% endfor %}
+#    gateway6: {{ (virt_networks[0].ip6_addr + "/" + (virt_networks[0].ip6_prefix_len | string )) | ansible.utils.ipaddr(1) | ansible.utils.ipaddr("address") }}
+#    nameservers:
+#      search:
+#{% for search in virt_dns.search %}
+#      - {{ search }}
+#{% endfor %}
+#      addresses:
+#{% for ns in virt_dns.nameservers %}
+#      - {{ ns }}
+#{% endfor %}
+
+version: 2
+ethernets:
+  enp1s0:
+    dhcp4: false
+    dhcp6: false
+    addresses:
+    - {{ virt_networks[0].ip6_addr }}/{{ virt_networks[0].ip6_prefix_len }}
+    gateway6: {{ (virt_networks[0].ip6_addr + "/" + (virt_networks[0].ip6_prefix_len | string )) | ansible.utils.ipaddr(1) | ansible.utils.ipaddr("address") }}
+    nameservers:
+      search:
+{% for search in virt_dns.search %}
+      - {{ search }}
+{% endfor %}
+      addresses:
+{% for ns in virt_dns.nameservers %}
+      - {{ ns }}
+{% endfor %}

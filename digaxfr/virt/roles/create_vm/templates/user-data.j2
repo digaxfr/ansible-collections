@@ -1,0 +1,22 @@
+#cloud-config
+
+preserve_hostname: False
+hostname: {{ inventory_hostname }}
+fqdn: {{ inventory_hostname }}
+
+users:
+- default
+
+ssh_authorized_keys:
+{% for key in public_ssh_keys %}
+- {{ key }}
+{% endfor %}
+
+timezone: UTC
+
+manage_etc_hosts: true
+
+# Working example for the future.
+#runcmd:
+#- [ip, -6, a]
+#- [sh, -xc, "echo $(date) >> /root/hi"]

@@ -1,0 +1,13 @@
+---
+- name: Poweroff the VM
+  ansible.builtin.command: >-
+    virsh destroy {{ inventory_hostname }}
+
+- name: Undefine the VM
+  ansible.builtin.command: >-
+    virsh undefine {{ inventory_hostname }} --nvram
+
+- name: Delete the VM image directory
+  ansible.builtin.file:
+    path: /var/lib/libvirt/images/{{ inventory_hostname }}
+    state: absent
