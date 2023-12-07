@@ -1,8 +1,11 @@
 ---
 - name: Install packages
   ansible.builtin.apt:
-    name: frr
+    name: '{{ item }}'
     state: present
+  loop:
+    - frr
+    - ndisc6
 
 - name: Allow IP forwarding
   ansible.builtin.sysctl:
