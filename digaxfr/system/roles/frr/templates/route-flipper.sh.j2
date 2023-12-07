@@ -31,9 +31,4 @@ fi
 
 # BGP default-originate not detected. We need to ensure that our static default
 # route is there.
-primary_iface_gw=$(cat /etc/systemd/network/*-${primary_iface}.network | grep Gateway | cut -f 2 -d =)
-
-if ! ip -6 route show default | grep --silent ${primary_iface_gw}; then
-    ip -6 route add default via ${primary_iface_gw}
-    exit 0
-fi
+rdisc6 --single -n {{ host_networking.mgmt_iface }}
