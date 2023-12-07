@@ -1,0 +1,19 @@
+---
+- name: Install packages
+  ansible.builtin.apt:
+    install_recommends: false
+    name: '{{ virt_packages }}'
+    state: present
+
+- name: Configure systemd
+  ansible.builtin.systemd:
+    name: libvirtd
+    enabled: true
+    state: started
+
+- name: Configure sysctl
+  ansible.posix.sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: 1
+    state: present
+    sysctl_set: true

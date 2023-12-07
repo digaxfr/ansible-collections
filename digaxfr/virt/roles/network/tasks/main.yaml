@@ -1,0 +1,20 @@
+---
+- name: Make a tempdir
+  ansible.builtin.tempfile:
+    state: directory
+  register: _temp
+
+- name: Configure networks
+  block:
+    - name: Loop over virt networks
+      ansible.builtin.include_tasks: network.yaml
+      loop: '{{ virt_networks | dict2items }}'
+      loop_control:
+        loop_var: _virt_network
+      when: virt_networks is defined
+
+  always:
+    - name: Cleanup
+      ansible.builtin.file:
+        path: '{{ _temp.path }}'
+        state: absent

@@ -1,0 +1,37 @@
+---
+- name: Check to see if the network exists already
+  ansible.builtin.command: >
+    virsh net-list --all --name
+  register: _virsh_net_list
+  changed_when: false
+
+- name: Template out config
+  ansible.builtin.template:
+    src: libvirt-network-bridge.xml.j2
+    dest: '{{ _temp.path }}/libvirt-network-bridge-{{ _virt_network.key }}.xml'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create the network
+  ansible.builtin.command: >
+    virsh net-define {{ _temp.path }}/libvirt-network-bridge-{{ _virt_network.key }}.xml
+  when: _virt_network.key not in _virsh_net_list.stdout_lines
+  changed_when: true
+
+- name: Check to see if the network is running
+  ansible.builtin.command: >
+    virsh net-list --inactive --name
+  register: _virsh_net_list
+  changed_when: false
+
+- name: Start the network
+  ansible.builtin.command: >
+    virsh net-start {{ _virt_network.key }}
+  when: _virt_network.key in _virsh_net_list.stdout_lines
+  changed_when: true
+
+- name: Set autostart
+  ansible.builtin.command: >
+    virsh net-autostart {{ _virt_network.key }}
+  changed_when: true
