@@ -1,0 +1,16 @@
+{% for interface in radvd['interfaces'] %}
+interface {{ interface }} {
+  AdvSendAdvert on;
+  MinRtrAdvInterval 3;
+  MaxRtrAdvInterval 10;
+  prefix ::/64 {
+    AdvOnLink on;
+    AdvAutonomous on;
+    AdvRouterAddr on;
+    AdvValidLifetime 7200;
+    AdvPreferredLifetime 3600;
+  };
+
+  RDNSS {{ nameservers | join(" ") }} {};
+};
+{% endfor %}

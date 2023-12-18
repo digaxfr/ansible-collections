@@ -1,0 +1,7 @@
+---
+- name: Restart radvd
+  ansible.builtin.systemd:
+    name: radvd
+    enabled: true
+    state: restarted
+    daemon_reload: true
