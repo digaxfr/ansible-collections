@@ -22,6 +22,10 @@
     qemu-img resize /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2 {{ virt_disks[0].size_gb }}G
   changed_when: true
 
+- name: Generate dns-api token
+  ansible.builtin.import_tasks: dns_api.yaml
+  when: use_dns_api | default(true)
+
 - name: Template out cloud-init files
   ansible.builtin.template:
     src: '{{ item }}.j2'

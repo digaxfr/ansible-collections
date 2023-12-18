@@ -36,16 +36,16 @@ version: 2
 ethernets:
   enp1s0:
     dhcp4: false
-    dhcp6: false
-    addresses:
-    - {{ virt_networks[0].ip6_addr }}/{{ virt_networks[0].ip6_prefix_len }}
-    gateway6: {{ (virt_networks[0].ip6_addr + "/" + (virt_networks[0].ip6_prefix_len | string )) | ansible.utils.ipaddr(1) | ansible.utils.ipaddr("address") }}
-    nameservers:
-      search:
-{% for search in virt_dns.search %}
-      - {{ search }}
-{% endfor %}
-      addresses:
-{% for ns in virt_dns.nameservers %}
-      - {{ ns }}
-{% endfor %}
+    dhcp6: true
+#    addresses:
+#    - {{ virt_networks[0].ip6_addr }}/{{ virt_networks[0].ip6_prefix_len }}
+#    gateway6: {{ (virt_networks[0].ip6_addr + "/" + (virt_networks[0].ip6_prefix_len | string )) | ansible.utils.ipaddr(1) | ansible.utils.ipaddr("address") }}
+#    nameservers:
+#      search:
+#{% for search in virt_dns.search %}
+#      - {{ search }}
+#{% endfor %}
+#      addresses:
+#{% for ns in virt_dns.nameservers %}
+#      - {{ ns }}
+#{% endfor %}

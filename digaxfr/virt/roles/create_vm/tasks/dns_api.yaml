@@ -1,0 +1,29 @@
+---
+- name: Get an admin account token
+  ansible.builtin.uri:
+    url: '{{ dns_api.endpoint }}/token'
+    method: POST
+    headers:
+      accept: application/json
+      Content-Type: application/x-www-form-urlencoded
+    body:
+      username: '{{ dns_api.user }}'
+      password: '{{ dns_api.password }}'
+      scope: "me request-dns-token"
+    body_format: form-urlencoded
+  register: _admin_token
+
+- name: Get a DNS updater token
+  ansible.builtin.uri:
+    url: '{{ dns_api.endpoint }}/dns/token?hostname={{ inventory_hostname }}'
+    method: POST
+    headers:
+      Authorization: "Bearer {{ _admin_token.json.access_token }}"
+      Content-Type: application/x-www-form-urlencoded
+      accept: application/json
+    body_format: form-urlencoded
+  register: _dns_updater_token
+
+- name: Set DNS API Updater jwt variable
+  ansible.builtin.set_fact:
+    _dns_api_jwt: '{{ _dns_updater_token.json.access_token }}'

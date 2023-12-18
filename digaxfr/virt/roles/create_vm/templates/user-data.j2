@@ -17,6 +17,7 @@ timezone: UTC
 manage_etc_hosts: true
 
 # Working example for the future.
-#runcmd:
+runcmd:
+  - [curl, -X, PUT, -H, "accept: application/json", -H, "Authorization: Bearer {{ _dns_api_jwt }}", "{{ dns_api.endpoint }}/dns/update?ipv6=fd73:6172:6168:a10::aaaa"]
 #- [ip, -6, a]
 #- [sh, -xc, "echo $(date) >> /root/hi"]
