@@ -1,0 +1,8 @@
+---
+podman_packages:
+  - containers-storage
+  - podman
+
+podman_networks:
+  ip6:
+    subnet: fd73:6172:6168:203::/64
