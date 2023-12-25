@@ -1,0 +1,5 @@
+---
+ceph_packages:
+  - cephadm
+
+ceph_release: reef

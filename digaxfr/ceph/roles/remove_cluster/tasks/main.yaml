@@ -1,0 +1,5 @@
+---
+- name: Remove the cluster
+  ansible.builtin.command: >-
+    cephadm rm-cluster --force --zap-osds --fsid {{ ceph_fsid }}
+  changed_when: true

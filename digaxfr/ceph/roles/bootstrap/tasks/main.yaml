@@ -1,0 +1,16 @@
+---
+# cephadm checks for an existing cluster by seeing if /etc/ceph/ceph.conf
+# exists.
+- name: Check to see if ceph.conf exists already
+  ansible.builtin.stat:
+    path: /etc/ceph/ceph.conf
+  register: _ceph_conf
+
+- name: Bootstrap the cluster
+  ansible.builtin.command: >-
+    cephadm bootstrap
+      --allow-fqdn-hostnam
+      --mon-ip {{ ansible_default_ipv6.address }}
+      --fsid {{ ceph_fsid }}
+  changed_when: true
+  when: not _ceph_conf.stat.exists
