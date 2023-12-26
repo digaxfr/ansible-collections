@@ -39,4 +39,13 @@ COMMIT
 {% endfor %}
 {% endif %}
 
+{% if "ceph_mon" in group_names %}
+-A INPUT -m conntrack --ctstate NEW -p tcp --dport 3300 -j ACCEPT
+-A INPUT -m conntrack --ctstate NEW -p tcp --dport 6789 -j ACCEPT
+{% endif %}
+
+{% if "ceph_mgr" in group_names or "ceph_osd" in group_names %}
+-A INPUT -m multiport -p tcp --dports 6800:7300 -m conntrack --ctstate NEW -j ACCEPT
+{% endif %}
+
 COMMIT
