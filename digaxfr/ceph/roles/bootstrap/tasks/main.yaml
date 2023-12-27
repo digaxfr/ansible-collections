@@ -1,4 +1,6 @@
 ---
+# https://docs.ceph.com/en/quincy/cephadm/install/
+
 # cephadm checks for an existing cluster by seeing if /etc/ceph/ceph.conf
 # exists.
 - name: Check to see if ceph.conf exists already
@@ -6,11 +8,62 @@
     path: /etc/ceph/ceph.conf
   register: _ceph_conf
 
+# In the future consider:
+# - --cluster-network if/when we get a secondary NIC
 - name: Bootstrap the cluster
   ansible.builtin.command: >-
     cephadm bootstrap
       --allow-fqdn-hostnam
       --mon-ip {{ ansible_default_ipv6.address }}
       --fsid {{ ceph_fsid }}
+      --ssh-user {{ ansible_user }}
+      --skip-firewalld
   changed_when: true
   when: not _ceph_conf.stat.exists
+
+# Make this idempotent in the future. Super lazy now.
+# This is just going to be quick and dirty hack to "document". A lot of vars are hard coded values tucked away elsewhere for now.
+- name: Configure OSD config
+  ansible.builtin.command: >-
+    {{ item }}
+  changed_when: true
+  loop:
+    - cephadm shell -- ceph config set global osd_pool_default_size 2
+    - cephadm shell -- ceph config set global osd_pool_default_min_size 1
+    - cephadm shell -- ceph orch apply mon --unmanaged
+    - 'cephadm shell -- ceph config set mon public_network "{{ ceph_public_mon_network }}"'
+
+# Need to think about static setting for mgrs?
+# Copy over SSH keys to other hosts, or really we should supply our own in the future.
+
+- name: Add additional hosts
+  ansible.builtin.command: >-
+    {{ item }}
+  changed_when: true
+  loop:
+    - cephadm shell -- ceph orch host add {{ ceph_orch_host_add_rpi5_02 }}
+    - cephadm shell -- ceph orch host add {{ ceph_orch_host_add_rpi5_03 }}
+    - cephadm shell -- ceph orch host label add {{ ceph_orch_host_label_add_rpi5_02 }} _admin
+    - cephadm shell -- ceph orch host label add {{ ceph_orch_host_label_add_rpi5_03 }} _admin
+
+# Configure Monitors here.
+# For now, using 1 mon on the lab environment. Increase it when we have a better grasp on maintenance tasks/graceful shutdowns, etc.
+# cephadm shell -m ./mon.yaml:/mnt/mon.yaml ./osd.yaml:/mnt/osd.yaml ./mgr.yaml:/mnt/mgr.yaml -- ceph orch apply -i /mnt/mon.yaml
+
+# Obviously break this out to individual nodes + disks/OSDs later on and not hard coded.
+- name: Add OSDs
+  ansible.builtin.command: >-
+    cephadm shell -- ceph orch daemon add osd {{ item }}:data_devices=/dev/ceph_block_0/block_0,db_devices=/dev/ceph_block_0/db_0,wal_devices=/dev/ceph_block_0/wal_0
+  changed_when: true
+  loop: '{{ groups.ceph_osd }}'
+
+- name: Add RBD pools
+  ansible.builtin.command: >-
+    cephadm shell -- ceph osd pool create {{ item }}
+  changed_when: true
+  loop:
+    - libvirt-images
+    - libvirt-vms
+
+# We have to create a key now for clients to use.
+# ceph auth get-or-create client.qemu mon 'profile rbd' osd 'profile rbd pool=vms, profile rbd-read-only pool=images' mgr 'profile rbd pool=images'
