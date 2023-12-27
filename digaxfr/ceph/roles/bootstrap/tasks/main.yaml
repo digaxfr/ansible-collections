@@ -59,11 +59,13 @@
 
 - name: Add RBD pools
   ansible.builtin.command: >-
-    cephadm shell -- ceph osd pool create {{ item }}
+    cephadm shell -- {{ item }}
   changed_when: true
   loop:
-    - libvirt-images
-    - libvirt-vms
+    - ceph osd pool create libvirt-images
+    - ceph osd pool create libvirt-vms
+    - ceph osd pool application enable libvirt-images rbd
+    - ceph osd pool application enable libvirt-vms rbd
 
 # We have to create a key now for clients to use.
 # ceph auth get-or-create client.qemu mon 'profile rbd' osd 'profile rbd pool=vms, profile rbd-read-only pool=images' mgr 'profile rbd pool=images'
