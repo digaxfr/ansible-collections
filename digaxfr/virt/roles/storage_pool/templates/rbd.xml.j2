@@ -1,0 +1,12 @@
+<pool type="rbd">
+  <name>{{ _idx_pool.key }}</name>
+  <source>
+    <name>{{ _idx_pool.value.osd_pool }}</name>
+{% for mon in _idx_pool.value.monitors %}
+    <host name='{{ mon }}'/>
+{% endfor %}
+    <auth username='{{ _idx_pool.value.ceph_auth_client_name }}' type='ceph'>
+      <secret uuid='{{ _secret_uuid }}'/>
+    </auth>
+  </source>
+</pool>

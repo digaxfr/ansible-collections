@@ -1,0 +1,62 @@
+---
+- name: Debug
+  debug:
+    msg: '{{ _idx_pool }}'
+
+- name: Query for current secret
+  ansible.builtin.command: >-
+    virsh secret-list
+  register: _libvirt_secret
+  changed_when: false
+
+- name: Create secret and pool
+  when: '"ceph-" + _idx_pool.key + "-secret" not in _libvirt_secret.stdout'
+  block:
+    - name: Create tempdir
+      ansible.builtin.tempfile:
+        state: directory
+      register: _rbd_tempdir
+
+    - name: Template out libvirt secret
+      ansible.builtin.template:
+        src: secret.xml.j2
+        dest: '{{ _rbd_tempdir.path }}/secret.xml'
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Create the secret
+      ansible.builtin.command: >-
+        virsh secret-define {{ _rbd_tempdir.path }}/secret.xml
+      changed_when: true
+      register: _secret_defined
+
+    - name: Set fact for secret uuid
+      ansible.builtin.set_fact:
+        _secret_uuid: '{{ _secret_defined.stdout.split(" ")[1] }}'
+
+    - name: Set the secret's value
+      ansible.builtin.command: >-
+        virsh secret-set-value --secret {{ _secret_uuid }} --base64 {{ _idx_pool.value.ceph_auth_key }}
+      changed_when: true
+
+    - name: Template out pool
+      ansible.builtin.template:
+        src: rbd.xml.j2
+        dest: '{{ _rbd_tempdir.path }}/rbd.xml'
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Apply pool config
+      ansible.builtin.command: >-
+        virsh pool-define --file {{ _rbd_tempdir.path }}/rbd.xml
+      changed_when: true
+
+    - name: Start pool config
+      ansible.builtin.command: >-
+        {{ item }}
+      changed_when: true
+      loop:
+        - virsh pool-autostart --pool {{ _idx_pool.key }}
+        - virsh pool-start --pool {{ _idx_pool.key }}
