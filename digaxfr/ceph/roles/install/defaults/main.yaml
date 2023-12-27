@@ -1,5 +1,6 @@
 ---
 ceph_packages:
   - cephadm
+  - lvm2
 
 ceph_release: reef

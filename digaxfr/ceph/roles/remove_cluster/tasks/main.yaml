@@ -1,4 +1,11 @@
 ---
+- name: Disable mgr
+  ansible.builtin.command: >-
+    cephadm shell -- ceph mgr module disable cephadm
+  run_once: true
+  changed_when: true
+  delegate_to: '{{ groups["ceph_bootstraper"][0] }}'
+
 - name: Remove the cluster
   ansible.builtin.command: >-
     cephadm rm-cluster --force --zap-osds --fsid {{ ceph_fsid }}
