@@ -1,0 +1,52 @@
+<domain type="kvm">
+  <name>{{ inventory_hostname }}</name>
+  <memory unit='MiB'>{{ virt_memory_mb }}</memory>
+  <currentMemory unit='MiB'>{{ virt_memory_mb}}</currentMemory>
+  <vcpu>{{ virt_cpu }}</vcpu>
+  <os firmware="efi">
+    <type arch="aarch64" machine="virt">hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+  </features>
+  <cpu mode="host-passthrough"/>
+  <clock offset="utc">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="hpet" present="no"/>
+  </clock>
+  <devices>
+    <controller type="usb" index="0" model="none"/>
+    <controller type="scsi" model="virtio-scsi"/>
+	<disk type='network' device='disk'>
+	  <driver name='qemu' type='raw'/>
+      <auth username='libvirt'>
+        <secret type='ceph' uuid='22dca434-488e-437a-a306-025af46a0f90'/>
+      </auth>
+      <source protocol='rbd' name='libvirt-vms/{{ inventory_hostname }}-vda' index='1'>
+        <host name='rpi5-01.lab.t0fu.dev'/>
+      </source>
+      <target dev='vda' bus='virtio'/>
+      <alias name='virtio-disk0'/>
+    </disk>
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <source file="/var/lib/libvirt/images/{{ inventory_hostname }}/cloud-init.iso"/>
+      <target dev="sda" bus="scsi"/>
+    </disk>
+{% for net in virt_networks %}
+    <interface type="bridge">
+      <source bridge="{{ net.network }}"/>
+      <model type="virtio-net-pci"/>
+    </interface>
+{% endfor %}
+    <video>
+      <model type="none"/>
+    </video>
+    <console type="pty">
+      <target type="serial"/>
+    </console>
+  </devices>
+</domain>

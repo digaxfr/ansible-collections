@@ -7,20 +7,28 @@
     group: libvirt-qemu
     mode: '0750'
 
-- name: Copy base image
-  ansible.builtin.copy:
-#    src: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
-    src: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
-    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2
-    remote_src: true
-    owner: libvirt-qemu
-    group: libvirt-qemu
-    mode: '0750'
+#- name: Copy base image
+#  ansible.builtin.copy:
+##    src: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
+#    src: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
+#    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2
+#    remote_src: true
+#    owner: libvirt-qemu
+#    group: libvirt-qemu
+#    mode: '0750'
 
-- name: Resize the root image
-  ansible.builtin.command: >
-    qemu-img resize /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2 {{ virt_disks[0].size_gb }}G
-  changed_when: true
+- name: Copy base iamge
+  ansible.builtin.command: >-
+    virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
+
+#- name: Resize the root image
+#  ansible.builtin.command: >
+#    qemu-img resize /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2 {{ virt_disks[0].size_gb }}G
+#  changed_when: true
+
+- name: Resize the root volume
+  ansible.builtin.command: >-
+     virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
 
 - name: Generate dns-api token
   ansible.builtin.import_tasks: dns_api.yaml
@@ -48,7 +56,8 @@
 
 - name: Template out domain file
   ansible.builtin.template:
-    src: domain.xml.j2
+#    src: domain.xml.j2
+    src: domain_rbd.xml.j2
     dest: /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
     owner: libvirt-qemu
     group: libvirt-qemu

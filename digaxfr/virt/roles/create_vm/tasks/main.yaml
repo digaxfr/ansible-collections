@@ -5,10 +5,6 @@
       - virt_host is defined
       - virt_host in groups.virt_hosts
 
-- name: Debug
-  ansible.builtin.debug:
-    msg: '{{ virt_networks }}'
-
 - name: Execute actions against {{ virt_host }}
   ansible.builtin.import_tasks: virt.yaml
   delegate_to: '{{ virt_host }}'
