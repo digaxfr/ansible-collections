@@ -1,0 +1,20 @@
+---
+- name: Install package
+  ansible.builtin.apt:
+    name: zram-tools
+    state: present
+
+- name: Configure zram
+  ansible.builtin.lineinfile:
+    path: /etc/default/zramswap
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+  loop:
+    - regexp: '^ALGO=.*'
+      line: ALGO=zstd
+    - regexp: '^PERCENT=.*'
+      line: PERCENT=85
+  notify: Restart zramswap
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
