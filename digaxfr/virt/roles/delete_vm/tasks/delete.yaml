@@ -15,3 +15,10 @@
   ansible.builtin.file:
     path: /var/lib/libvirt/images/{{ inventory_hostname }}
     state: absent
+
+# Supporting disk0 only at the moment because of... laziness.
+- name: Delete the volume (RBD)
+  when: virt_disks[0].pool == "ceph0" | default(false)
+  ansible.builtin.command: >-
+    virsh vol-delete --pool ceph0 --vol {{ inventory_hostname }}-vda
+  changed_when: true

@@ -23,7 +23,7 @@
 	<disk type='network' device='disk'>
 	  <driver name='qemu' type='raw'/>
       <auth username='libvirt'>
-        <secret type='ceph' uuid='22dca434-488e-437a-a306-025af46a0f90'/>
+        <secret type='ceph' uuid='{{ _ceph_secret.stdout }}'/>
       </auth>
       <source protocol='rbd' name='libvirt-vms/{{ inventory_hostname }}-vda' index='1'>
         <host name='rpi5-01.lab.t0fu.dev'/>

@@ -18,8 +18,10 @@
 #    mode: '0750'
 
 - name: Copy base iamge
+  when: virt_disks[0].pool == "ceph0" | default(false)
   ansible.builtin.command: >-
     virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
+  changed_when: true
 
 #- name: Resize the root image
 #  ansible.builtin.command: >
@@ -27,8 +29,18 @@
 #  changed_when: true
 
 - name: Resize the root volume
+  when: virt_disks[0].pool == "ceph0" | default(false)
   ansible.builtin.command: >-
      virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
+  changed_when: true
+
+# These are times where shell module is just the right answer... Refactor me in the future.
+- name: Grab ceph secret
+  when: virt_disks[0].pool == "ceph0" | default(false)
+  ansible.builtin.shell: >-
+    virsh secret-list | grep ceph-ceph0-secret | cut -f 2 -d ' '
+  changed_when: false
+  register: _ceph_secret
 
 - name: Generate dns-api token
   ansible.builtin.import_tasks: dns_api.yaml
