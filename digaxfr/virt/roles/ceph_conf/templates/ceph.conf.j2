@@ -1,0 +1,3 @@
+[global]
+        fsid = {{ item.value.fsid }}
+        mon_host = {% for mon in item.value.monitors %}{% if loop.last %}{{ mon }}{% else %}{{ mon }} {% endif %}{% endfor -%}

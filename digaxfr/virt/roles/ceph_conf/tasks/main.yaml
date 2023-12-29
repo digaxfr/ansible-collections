@@ -1,0 +1,30 @@
+---
+- name: Create directories
+  ansible.builtin.file:
+    path: /etc/ceph
+    state: directory
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Template out configs
+  ansible.builtin.template:
+    src: ceph.conf.j2
+    dest: '/etc/ceph/ceph.{{ item.key }}.conf'
+    owner: root
+    group: root
+    mode: '0600'
+  loop: '{{ (libvirt_storage_pools.rbd | dict2items) | default(false) }}'
+  loop_control:
+    label: '{{ item.key }}'
+
+- name: Template out keyrings
+  ansible.builtin.template:
+    src: ceph.keyring.j2
+    dest: '/etc/ceph/ceph.{{ item.key }}.{{ item.value.ceph_auth_client_name }}.keyring'
+    owner: root
+    group: root
+    mode: '0600'
+  loop: '{{ (libvirt_storage_pools.rbd | dict2items) | default(false) }}'
+  loop_control:
+    label: '{{ item.key }}'
