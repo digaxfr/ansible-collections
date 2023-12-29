@@ -18,7 +18,7 @@
 
 # Supporting disk0 only at the moment because of... laziness.
 - name: Delete the volume (RBD)
-  when: virt_disks[0].pool == "ceph0" | default(false)
+  when: (virt_disks[0].pool | default(false)) == "ceph0"
   ansible.builtin.command: >-
     rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
       -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
