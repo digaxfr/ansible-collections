@@ -1,8 +1,4 @@
 ---
-- name: Debug
-  debug:
-    msg: '{{ _idx_pool }}'
-
 - name: Query for current secret
   ansible.builtin.command: >-
     virsh secret-list
