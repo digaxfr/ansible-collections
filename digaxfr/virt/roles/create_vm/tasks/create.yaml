@@ -20,7 +20,16 @@
 - name: Copy base iamge
   when: virt_disks[0].pool == "ceph0" | default(false)
   ansible.builtin.command: >-
-    virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
+    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
+      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
+      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
+      cp
+      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+      --dest-pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+      --image {{ virt_base_image.aarch64 | replace(".qcow2", ".raw") }}
+      --dest {{ inventory_hostname }}-vda
+#  ansible.builtin.command: >-
+#    virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
   changed_when: true
 
 #- name: Resize the root image
@@ -31,7 +40,15 @@
 - name: Resize the root volume
   when: virt_disks[0].pool == "ceph0" | default(false)
   ansible.builtin.command: >-
-     virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
+    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
+      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
+      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
+      resize
+      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+      --image {{ inventory_hostname }}-vda
+      --size {{ virt_disks[0].size_gb }}G
+#  ansible.builtin.command: >-
+#     virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
   changed_when: true
 
 # These are times where shell module is just the right answer... Refactor me in the future.

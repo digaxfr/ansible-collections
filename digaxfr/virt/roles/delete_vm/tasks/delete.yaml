@@ -20,5 +20,12 @@
 - name: Delete the volume (RBD)
   when: virt_disks[0].pool == "ceph0" | default(false)
   ansible.builtin.command: >-
-    virsh vol-delete --pool ceph0 --vol {{ inventory_hostname }}-vda
+    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
+      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
+      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
+      rm
+      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+      --image {{ inventory_hostname }}-vda
+#  ansible.builtin.command: >-
+#    virsh vol-delete --pool ceph0 --vol {{ inventory_hostname }}-vda
   changed_when: true
