@@ -1,0 +1,31 @@
+---
+- name: Craete config directory
+  ansible.builtin.file:
+    path: /opt/adguardhome/conf
+    state: directory
+
+- name: Template configuration
+  ansible.builtin.template:
+    src: AdGuardHome.yaml.j2
+    dest: /opt/adguardhome/conf/AdGuardHome.yaml
+    owner: root
+    group: root
+    mode: '0640'
+
+- name: Pull image
+  containers.podman.podman_container:
+    name: adguard-home
+    image: '{{ adguard_home.image }}:{{ adguard_home.image_tag }}'
+#    command: []
+    network: '{{ podman.default_network }}'
+    publish:
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '8053:80/tcp'
+      - '3000:3000/tcp'
+    volumes:
+      - '/opt/adguardhome/conf:/opt/adguardhome/conf'
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+    state: started

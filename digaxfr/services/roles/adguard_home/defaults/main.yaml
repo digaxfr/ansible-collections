@@ -1,0 +1,6 @@
+---
+adguard_home:
+  image: docker.io/adguard/adguardhome
+  image_tag: v0.107.43
+  web_password: '{{ adguard_home_web_password_vaulted }}'
+  web_user: digaxfr

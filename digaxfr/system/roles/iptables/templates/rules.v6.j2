@@ -12,6 +12,10 @@ COMMIT
 :INPUT DROP [0:0]
 :FORWARD DROP [0:0]
 :OUTPUT ACCEPT [0:0]
+{% if "podman" in group_names %}
+:DXF-CNI-FWD - [0:0]
+{% endif %}
+
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -p icmp -j ACCEPT
 -A INPUT -p ipv6-icmp -j ACCEPT
@@ -46,6 +50,15 @@ COMMIT
 
 {% if "ceph_mgr" in group_names or "ceph_osd" in group_names %}
 -A INPUT -m multiport -p tcp --dports 6800:7300 -m conntrack --ctstate NEW -j ACCEPT
+{% endif %}
+
+{% if "podman" in group_names %}
+# https://access.redhat.com/solutions/5885821
+-A FORWARD -j DXF-CNI-FWD
+-A DXF-CNI-FWD -o {{ podman.default_network }} + -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A DXF-CNI-FWD -o {{ podman.default_network }} -j ACCEPT
+-A DXF-CNI-FWD -i {{ podman.default_network }} ! -o {{ podman.default_network }} -j ACCEPT
+-A DXF-CNI-FWD -i {{ podman.default_network }} -o {{ podman.default_network }} -j ACCEPT
 {% endif %}
 
 COMMIT
