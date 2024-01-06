@@ -1,0 +1,25 @@
+---
+- name: Restart PiHole
+  ansible.builtin.command: >-
+    podman restart pihole
+  notify: check status
+  changed_when: false
+
+- name: Check status
+  ansible.builtin.command: >-
+    podman inspect pihole -f {% raw %}'{{ .State.Status }}'{% endraw %}
+  changed_when: true
+  register: _check_container_status
+  retries: 15
+  delay: 2
+  until: _check_container_status.stdout == 'running'
+  notify: Query check
+
+- name: Query check
+  ansible.builtin.command: >
+    dig @127.0.0.1 {{ item }} +short
+  changed_when: false
+  failed_when: _dns_query.stdout == ''
+  register: _dns_query
+  loop:
+    - google.com

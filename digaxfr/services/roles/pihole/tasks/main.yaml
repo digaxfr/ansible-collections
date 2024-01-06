@@ -1,0 +1,25 @@
+---
+- name: Start PiHole
+  containers.podman.podman_container:
+    name: pihole
+    env:
+      DNSMASQ_LISTENING: all
+      PIHOLE_DNS_: '{{ pihole_forwarders | join(";") }}'
+      TZ: UTC
+      WEBPASSWORD: '{{ pihole_web_password }}'
+    image: docker.io/pihole/pihole:{{ pihole_version }}
+    network: '{{ podman.default_network }}'
+    publish:
+      - 53:53/tcp
+      - 53:53/udp
+      - 80:80/tcp
+    generate_systemd:
+      path: /etc/systemd/system
+      restart_policy: always
+    state: started
+
+- name: Always trigger check status handler
+  ansible.builtin.debug:
+    msg: 'Triggering handlers'
+  notify: Check status
+  changed_when: true

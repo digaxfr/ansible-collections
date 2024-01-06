@@ -1,0 +1,4 @@
+# Talks to CoreDNS
+{% for zone in coredns_zones %}
+server=/{{ zone }}/{{ ansible_default_ipv4.address }}#5353
+{% endfor %}

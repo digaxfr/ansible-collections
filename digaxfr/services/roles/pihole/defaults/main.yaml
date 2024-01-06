@@ -1,0 +1,6 @@
+---
+pihole_forwarders:
+- 2606:4700:4700::64
+- 2001:4860:4860::6464
+pihole_version: 2023.11.0
+pihole_web_password: '{{ pihole_web_password_vaulted }}'
