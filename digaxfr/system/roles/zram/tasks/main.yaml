@@ -16,5 +16,21 @@
       line: PERCENT=95
   notify: Restart zramswap
 
+# https://wiki.archlinux.org/title/Zram - Values from here and apparently well tested.
+- name: Configure sysctl settings for zram
+  ansible.posix.sysctl:
+    name: '{{ item.name }}'
+    value: '{{ item.value }}'
+    state: present
+  loop:
+    - name: vm.swappiness
+      value: 180
+    - name: vm.watermark_boost_factor
+      value: 0
+    - name: vm.watermark_scale_factor
+      value: 125
+    - name: vm.page-cluster
+      value: 0
+
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
