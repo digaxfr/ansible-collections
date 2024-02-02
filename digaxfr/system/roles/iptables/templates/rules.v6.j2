@@ -55,7 +55,7 @@ COMMIT
 {% if "podman" in group_names %}
 # https://access.redhat.com/solutions/5885821
 -A FORWARD -j DXF-CNI-FWD
--A DXF-CNI-FWD -o {{ podman.default_network }} + -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A DXF-CNI-FWD -o {{ podman.default_network }} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A DXF-CNI-FWD -o {{ podman.default_network }} -j ACCEPT
 -A DXF-CNI-FWD -i {{ podman.default_network }} ! -o {{ podman.default_network }} -j ACCEPT
 -A DXF-CNI-FWD -i {{ podman.default_network }} -o {{ podman.default_network }} -j ACCEPT
