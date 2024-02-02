@@ -13,7 +13,7 @@
     - regexp: '^ALGO=.*'
       line: ALGO=zstd
     - regexp: '^PERCENT=.*'
-      line: PERCENT=85
+      line: PERCENT=95
   notify: Restart zramswap
 
 - name: Flush handlers
