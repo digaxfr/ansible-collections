@@ -7,57 +7,57 @@
     group: libvirt-qemu
     mode: '0750'
 
-#- name: Copy base image
-#  ansible.builtin.copy:
-##    src: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
-#    src: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
-#    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2
-#    remote_src: true
-#    owner: libvirt-qemu
-#    group: libvirt-qemu
-#    mode: '0750'
+- name: Copy base image
+  ansible.builtin.copy:
+#    src: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
+    src: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
+    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2
+    remote_src: true
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: '0750'
 
-- name: Copy base iamge
-  when: virt_disks[0].pool == "ceph0" | default(false)
-  ansible.builtin.command: >-
-    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
-      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
-      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
-      cp
-      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
-      --dest-pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
-      --image {{ virt_base_image.aarch64 | replace(".qcow2", ".raw") }}
-      --dest {{ inventory_hostname }}-vda
+#- name: Copy base iamge
+#  when: virt_disks[0].pool == "ceph0" | default(false)
 #  ansible.builtin.command: >-
-#    virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
-  changed_when: true
-
-#- name: Resize the root image
-#  ansible.builtin.command: >
-#    qemu-img resize /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2 {{ virt_disks[0].size_gb }}G
+#    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
+#      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
+#      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
+#      cp
+#      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+#      --dest-pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+#      --image {{ virt_base_image.aarch64 | replace(".qcow2", ".raw") }}
+#      --dest {{ inventory_hostname }}-vda
+##  ansible.builtin.command: >-
+##    virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
 #  changed_when: true
 
-- name: Resize the root volume
-  when: virt_disks[0].pool == "ceph0" | default(false)
-  ansible.builtin.command: >-
-    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
-      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
-      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
-      resize
-      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
-      --image {{ inventory_hostname }}-vda
-      --size {{ virt_disks[0].size_gb }}G
-#  ansible.builtin.command: >-
-#     virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
+- name: Resize the root image
+  ansible.builtin.command: >
+    qemu-img resize /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2 {{ virt_disks[0].size_gb }}G
   changed_when: true
 
+#- name: Resize the root volume
+#  when: virt_disks[0].pool == "ceph0" | default(false)
+#  ansible.builtin.command: >-
+#    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
+#      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
+#      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
+#      resize
+#      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+#      --image {{ inventory_hostname }}-vda
+#      --size {{ virt_disks[0].size_gb }}G
+##  ansible.builtin.command: >-
+##     virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
+#  changed_when: true
+
 # These are times where shell module is just the right answer... Refactor me in the future.
-- name: Grab ceph secret
-  when: virt_disks[0].pool == "ceph0" | default(false)
-  ansible.builtin.shell: >-
-    virsh secret-list | grep ceph-ceph0-secret | cut -f 2 -d ' '
-  changed_when: false
-  register: _ceph_secret
+#- name: Grab ceph secret
+#  when: virt_disks[0].pool == "ceph0" | default(false)
+#  ansible.builtin.shell: >-
+#    virsh secret-list | grep ceph-ceph0-secret | cut -f 2 -d ' '
+#  changed_when: false
+#  register: _ceph_secret
 
 - name: Generate dns-api token
   ansible.builtin.import_tasks: dns_api.yaml
@@ -85,8 +85,8 @@
 
 - name: Template out domain file
   ansible.builtin.template:
-#    src: domain.xml.j2
-    src: domain_rbd.xml.j2
+    src: domain.xml.j2
+#    src: domain_rbd.xml.j2
     dest: /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
     owner: libvirt-qemu
     group: libvirt-qemu
