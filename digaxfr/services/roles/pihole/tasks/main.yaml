@@ -18,6 +18,12 @@
       restart_policy: always
     state: started
 
+- name: Enable systemd service
+  ansible.builtin.systemd:
+    name: container-pihole.service
+    state: started
+    enabled: true
+
 - name: Always trigger check status handler
   ansible.builtin.debug:
     msg: 'Triggering handlers'
