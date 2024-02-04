@@ -12,6 +12,7 @@
     owner: root
     group: root
     mode: '0644'
+  when: _virt_network.key not in _virsh_net_list.stdout_lines
 
 - name: Create the network
   ansible.builtin.command: >
