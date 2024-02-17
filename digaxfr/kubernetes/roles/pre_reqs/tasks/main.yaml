@@ -21,50 +21,57 @@
     reload: yes
   loop: '{{ kube_sysctl }}'
 
-- name: Check to see if cri-tools exists
-  ansible.builtin.stat:
-    path: /opt/cri-tools/cri-tools.tar.gz
-    checksum_algorithm: sha256
-  register: _stat_cri_tools
+- name: Install first set of pre-req packages
+  ansible.builtin.apt:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - apt-transport-https
+    - ca-certificates
+    - containerd
+    - curl
+    - gpg
 
-- include_tasks: download_cri_tools.yaml
-  when: (not _stat_cri_tools.stat.exists) or (_stat_cri_tools.stat.checksum != cri_tools[ansible_architecture].checksum)
-
-- name: Check to see if correct kubeadm version exists
-  ansible.builtin.stat:
-    path: /usr/local/bin/kubeadm
-    checksum_algorithm: sha256
-  register: _stat_kubeadm
-
-- include_tasks: download_kube_node.yaml
-  when: (not _stat_kubeadm.stat.exists) or (_stat_kubeadm.stat.checksum != kubernetes_binaries[ansible_architecture].kubeadm.checksum)
-
-- name: Copy kubelet systemd unit
+- name: Configure containerd
   ansible.builtin.template:
-    src: kubelet.service.j2
-    dest: /etc/systemd/system/kubelet.service
+    src: config.toml.j2
+    dest: /etc/containerd/config.toml
     owner: root
     group: root
     mode: 0644
-  notify: restart kubelet
+  notify: restart containerd
 
-- name: Systemd drop-in for kubelet
-  ansible.builtin.file:
-    path: /etc/systemd/system/kubelet.service.d
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-  notify: restart kubelet
+- name: Start containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: started
+    enabled: true
 
-- name: Copy kubelet drop-in unit
-  ansible.builtin.template:
-    src: 10-kubeadm.conf.j2
-    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-    owner: root
-    group: root
-    mode: 0644
-  notify: restart kubelet
+- name: Add Kubernetes apt key
+  ansible.builtin.apt_key:
+    url: https://pkgs.k8s.io/core:/stable:/v{{ k8s_version_short }}/deb/Release.key
+    state: present
+
+- name: Add Kubernetes repo
+  ansible.builtin.apt_repository:
+    repo: 'deb https://pkgs.k8s.io/core:/stable:/v{{ k8s_version_short }}/deb/ /'
+  register: _kube_repo_added
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: _kube_repo_added is changed
+
+- name: Install Kubernetes packages
+  ansible.builtin.apt:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - kubeadm
+    - kubectl
+    - kubelet
+
+# Legacy code was here. Check out legacy.yaml.
 
 - name: Start kubelet
   ansible.builtin.systemd:
