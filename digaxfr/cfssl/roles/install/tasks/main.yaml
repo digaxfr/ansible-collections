@@ -1,0 +1,28 @@
+---
+- name: Check for binaries
+  ansible.builtin.stat:
+    path: '/usr/local/bin/{{ item.key }}'
+  loop: '{{ cfssl_binaries | dict2items }}'
+  loop_control:
+    label: '{{ item.key }}'
+  register: _cfssl_stat
+
+- name: Install all binaries
+  when: 'not item.stat.exists'
+  ansible.builtin.uri:
+    url: '{{ item.item.value[ansible_facts.machine].url }}'
+    dest: '/usr/local/bin/{{ item.item.key }}'
+    owner: root
+    group: root
+    mode: '0755'
+  loop: '{{ _cfssl_stat.results }}'
+  loop_control:
+    label: '{{ item.item.key }}'
+
+- name: Create stateful directory
+  ansible.builtin.file:
+    path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl'
+    state: directory
+    owner: '{{ ansible_user_uid }}'
+    group: '{{ ansible_user_gid }}'
+    mode: '0750'

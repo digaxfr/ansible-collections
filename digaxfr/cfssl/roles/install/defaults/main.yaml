@@ -1,0 +1,16 @@
+---
+cfssl_version: 1.6.4
+
+cfssl_binaries:
+  cfssl:
+    aarch64:
+      url: 'https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/cfssl_{{ cfssl_version }}_linux_arm64'
+  cfssljson:
+    aarch64:
+      url: 'https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/cfssljson_{{ cfssl_version }}_linux_arm64'
+  mkbundle:
+    aarch64:
+      url: 'https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/mkbundle_{{ cfssl_version }}_linux_arm64'
+  multirootca:
+    aarch64:
+      url: 'https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/multirootca_{{ cfssl_version }}_linux_arm64'
