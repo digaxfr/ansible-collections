@@ -1,0 +1,66 @@
+---
+# For this role, we only check if the CA exists. This will always overwrite
+# any local cert files.
+
+- name: Asserts
+  ansible.builtin.assert:
+    that:
+      - cfssl_ca_name is defined
+      - cfssl_cert_name is defined
+
+- name: Check to see if CA exists
+  ansible.builtin.stat:
+    path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}'
+  register: _cfssl_ca_stat
+
+- name: Create cert if CA exists
+  when: _cfssl_ca_stat.stat.exists
+  block:
+    - name: Set hosts list
+      when: cfssl_hosts is defined
+      ansible.builtin.set_fact:
+        _cfssl_hosts: '{{ cfssl_hosts | split(",") }}'
+
+    - name: Generate cert stateful directory
+      ansible.builtin.file:
+        path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/certs/{{ cfssl_cert_name }}'
+        state: directory
+        owner: '{{ ansible_user_uid }}'
+        group: '{{ ansible_user_gid }}'
+        mode: '0700'
+
+    - name: Template out csr.json
+      ansible.builtin.template:
+        src: csr.json.j2
+        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/certs/{{ cfssl_cert_name }}/csr.json'
+        owner: '{{ ansible_user_uid }}'
+        group: '{{ ansible_user_gid }}'
+        mode: '0600'
+
+    - name: Generate new cert as cfssl json format
+      ansible.builtin.command: >-
+        /usr/local/bin/cfssl gencert
+          -ca {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}/ca.pem
+          -ca-key {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}/ca-key.pem
+          -config {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca-config.json
+          -profile {{ cfssl_profile | default('www') }}
+          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/certs/{{ cfssl_cert_name }}/csr.json
+      register: _gencert
+      changed_when: true
+
+    - name: Save stdout to json file
+      ansible.builtin.copy:
+        content: '{{ _gencert.stdout }}'
+        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/certs/{{ cfssl_cert_name }}/gencert.json'
+        owner: '{{ ansible_user_uid }}'
+        group: '{{ ansible_user_gid }}'
+        mode: '0600'
+
+    - name: Generate pem files from json
+      ansible.builtin.command: >-
+        /usr/local/bin/cfssljson -f
+          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/certs/{{ cfssl_cert_name }}/gencert.json
+          -bare cert
+      args:
+        chdir: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/certs/{{ cfssl_cert_name }}'
+      changed_when: true

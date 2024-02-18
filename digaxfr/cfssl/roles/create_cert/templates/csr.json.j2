@@ -1,0 +1,17 @@
+{
+  "CN": "{{ cfssl_cert_name }}",
+  "hosts": {{ (_cfssl_hosts | default([])) | to_json }},
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C":  "US",
+      "L":  "New York",
+      "O":  "digaxfr",
+      "OU": "lab",
+      "ST": "New York"
+    }
+  ]
+}

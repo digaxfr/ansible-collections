@@ -9,7 +9,7 @@
 
 - name: Check to see if stateful directory exists
   ansible.builtin.stat:
-    path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}'
+    path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}'
   register: _cfssl_ca_stat
 
 - name: Create CA if it does not exist
@@ -17,7 +17,7 @@
   block:
     - name: Generate CA stateful directory
       ansible.builtin.file:
-        path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}'
+        path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}'
         state: directory
         owner: '{{ ansible_user_uid }}'
         group: '{{ ansible_user_gid }}'
@@ -26,7 +26,7 @@
     - name: Template out csr.json
       ansible.builtin.template:
         src: csr.json.j2
-        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/csr.json'
+        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}/csr.json'
         owner: '{{ ansible_user_uid }}'
         group: '{{ ansible_user_gid }}'
         mode: '0600'
@@ -34,14 +34,14 @@
     - name: Generate new CA as cfssl json format
       ansible.builtin.command: >-
         /usr/local/bin/cfssl gencert -initca
-          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/csr.json
+          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}/csr.json
       register: _gencert_initca
       changed_when: true
 
     - name: Save stdout to json file
       ansible.builtin.copy:
         content: '{{ _gencert_initca.stdout }}'
-        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/gencert_initca.json'
+        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}/gencert_initca.json'
         owner: '{{ ansible_user_uid }}'
         group: '{{ ansible_user_gid }}'
         mode: '0600'
@@ -49,8 +49,8 @@
     - name: Generate pem files from json
       ansible.builtin.command: >-
         /usr/local/bin/cfssljson -f
-          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/gencert_initca.json
+          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}/gencert_initca.json
           -bare ca
       args:
-        chdir: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}'
+        chdir: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/ca/{{ cfssl_ca_name }}'
       changed_when: true
