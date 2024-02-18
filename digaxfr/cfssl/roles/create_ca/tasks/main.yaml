@@ -1,0 +1,56 @@
+---
+# For this role, we assume that if the stateful directory exists already, do
+# not perform any action. Even if the actual contents are empty.
+
+- name: Asserts
+  ansible.builtin.assert:
+    that:
+      - cfssl_ca_name is defined
+
+- name: Check to see if stateful directory exists
+  ansible.builtin.stat:
+    path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}'
+  register: _cfssl_ca_stat
+
+- name: Create CA if it does not exist
+  when: not _cfssl_ca_stat.stat.exists
+  block:
+    - name: Generate CA stateful directory
+      ansible.builtin.file:
+        path: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}'
+        state: directory
+        owner: '{{ ansible_user_uid }}'
+        group: '{{ ansible_user_gid }}'
+        mode: '0700'
+
+    - name: Template out csr.json
+      ansible.builtin.template:
+        src: csr.json.j2
+        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/csr.json'
+        owner: '{{ ansible_user_uid }}'
+        group: '{{ ansible_user_gid }}'
+        mode: '0600'
+
+    - name: Generate new CA as cfssl json format
+      ansible.builtin.command: >-
+        /usr/local/bin/cfssl gencert -initca
+          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/csr.json
+      register: _gencert_initca
+      changed_when: true
+
+    - name: Save stdout to json file
+      ansible.builtin.copy:
+        content: '{{ _gencert_initca.stdout }}'
+        dest: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/gencert_initca.json'
+        owner: '{{ ansible_user_uid }}'
+        group: '{{ ansible_user_gid }}'
+        mode: '0600'
+
+    - name: Generate pem files from json
+      ansible.builtin.command: >-
+        /usr/local/bin/cfssljson -f
+          {{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}/gencert_initca.json
+          -bare ca
+      args:
+        chdir: '{{ ansible_env.HOME }}/.local/share/digaxfr/cfssl/{{ cfssl_ca_name }}'
+      changed_when: true
