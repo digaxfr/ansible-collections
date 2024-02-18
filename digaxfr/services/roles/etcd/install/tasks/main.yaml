@@ -1,0 +1,133 @@
+---
+- name: Create stateful etcd directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+  loop:
+    - /etc/etcd
+    - /var/lib/etcd
+
+- name: Template out certs
+  ansible.builtin.copy:
+    content: '{{ item.content }}'
+    dest: '{{ item.dest }}'
+    owner: root
+    group: root
+    mode: '0640'
+  loop:
+    - content: '{{ etcd_clients_ca }}'
+      dest: /etc/etcd/clients-ca.crt
+    - content: '{{ etcd_clients_cert }}'
+      dest: /etc/etcd/clients.crt
+    - content: '{{ etcd_clients_key }}'
+      dest: /etc/etcd/clients.key
+    - content: '{{ etcd_peers_ca }}'
+      dest: /etc/etcd/peers-ca.crt
+    - content: '{{ etcd_peers_cert }}'
+      dest: /etc/etcd/peers.crt
+    - content: '{{ etcd_peers_key }}'
+      dest: /etc/etcd/peers.key
+  loop_control:
+    label: '{{ item.dest }}'
+
+# Note, multi-homed is not supported. While some nodes are multi-homed, the
+# real use-case is on single-homed nodes. Trying this on a multi-homed device
+# "works", but it can break depenmding on BGP status.
+- name: Set facts for cleaner looking code
+  ansible.builtin.set_fact:
+    _initial_cluster: >-
+      {%- for host in groups['etcd'] -%}
+        {{ host }}=https://[{{ hostvars[host].ansible_default_ipv6.address }}]:2380{% if not loop.last %},{% endif %}
+      {%- endfor -%}
+
+# TODO:
+# - Metrics URL is listening on localhost only. Swing back to this in the
+#   future when we want to ingest metrics.
+- name: Run etcd
+  containers.podman.podman_container:
+    name: etcd
+    image: '{{ etcd_image }}:{{ etcd_image_tag }}'
+    command:
+      - etcd
+      - --advertise-client-urls=https://[{{ ansible_default_ipv6.address }}]:2379
+      - --cert-file=/etc/etcd/clients.crt
+      - --client-cert-auth=true
+      - --data-dir=/var/lib/etcd
+      - --experimental-initial-corrupt-check=true
+      - --experimental-watch-progress-notify-interval=5s
+      - --initial-advertise-peer-urls=https://[{{ ansible_default_ipv6.address }}]:2380
+      - --initial-cluster={{ _initial_cluster }}
+      - --key-file=/etc/etcd/clients.key
+      - --listen-client-urls=https://[::1]:2379,https://[{{ ansible_default_ipv6.address }}]:2379
+      - --listen-metrics-urls=http://[::1]:2381
+      - --listen-peer-urls=https://[{{ ansible_default_ipv6.address }}]:2380
+      - --name={{ ansible_fqdn }}
+      - --peer-cert-file=/etc/etcd/peers.crt
+      - --peer-client-cert-auth=true
+      - --peer-key-file=/etc/etcd/peers.key
+      - --peer-trusted-ca-file=/etc/etcd/peers-ca.crt
+      - --snapshot-count=10000
+      - --trusted-ca-file=/etc/etcd/clients-ca.crt
+      - --initial-cluster-state=new
+      - --log-level=debug
+    network: host
+    volumes:
+      - /etc/etcd:/etc/etcd:rw
+      - /var/lib/etcd:/var/lib/etcd:rw
+    generate_systemd:
+      path: /etc/systemd/system/
+      restart_policy: always
+    state: started
+
+- name: Set fact for cleaner code
+  ansible.builtin.set_fact:
+    _etcd_endpoints: >-
+      {%- for host in groups['etcd'] -%}
+        [{{ hostvars[host].ansible_default_ipv6.address }}]:2379{% if not loop.last %},{% endif %}
+      {%- endfor -%}
+
+# I tried using containers.podman.podman_container_exec, but it appears to be
+# having problems with the return code. The module is also just new/released
+# at the time of writing.
+- name: Verify etcd cluster is healthy (status)
+  ansible.builtin.command: >-
+    podman exec -it etcd
+      etcdctl
+        --cert=/etc/etcd/clients.crt
+        --key=/etc/etcd/clients.key
+        --cacert=/etc/etcd/clients-ca.crt
+        --endpoints={{ _etcd_endpoints }}
+        --write-out=table
+        endpoint status
+  retries: 60
+  delay: 2
+  until: _etcd_exec_status.rc == 0
+  register: _etcd_exec_status
+  changed_when: false
+
+- name: Show output of healthcheck
+  ansible.builtin.debug:
+    var: _etcd_exec_status.stdout_lines
+
+- name: Verify etcd cluster is healthy (health)
+  ansible.builtin.command: >-
+    podman exec -it etcd
+      etcdctl
+        --cert=/etc/etcd/clients.crt
+        --key=/etc/etcd/clients.key
+        --cacert=/etc/etcd/clients-ca.crt
+        --endpoints={{ _etcd_endpoints }}
+        --write-out=table
+        endpoint health
+  retries: 60
+  delay: 2
+  until: _etcd_exec_health.rc == 0
+  register: _etcd_exec_health
+  changed_when: false
+
+- name: Show output of healthcheck
+  ansible.builtin.debug:
+    var: _etcd_exec_health.stdout_lines
