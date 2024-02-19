@@ -15,6 +15,7 @@ kind: InitConfiguration
 nodeRegistration:
   kubeletExtraArgs:
     fail-swap-on: "false"
+
 #  criSocket: unix:///var/run/containerd/containerd.sock
 #  imagePullPolicy: IfNotPresent
 #  name: node
@@ -44,6 +45,15 @@ networking:
   podSubnet: '{{ kube_pod_cidr }}'
   serviceSubnet: '{{ kube_service_cidr }}'
 #scheduler: {}
+
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+failSwapOn: false
+featureGates:
+  NodeSwap: true
+memorySwap:
+  swapBehavior: LimitedSwap
 
 # https://pkg.go.dev/k8s.io/kubernetes@v1.29.2/cmd/kubeadm/app/apis/kubeadm/v1beta4
 # TODO: BYO Certs
