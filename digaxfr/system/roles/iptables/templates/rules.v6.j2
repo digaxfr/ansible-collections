@@ -63,6 +63,6 @@ COMMIT
 {% endif %}
 
 {% if "k8s_control_plane" in group_names %}
--A INPUT -p tcp --dport 6446 -j ACCEPT
+-A INPUT -p tcp --dport 6443 -j ACCEPT
 {% endif %}
 COMMIT
