@@ -1,0 +1,55 @@
+---
+debug:
+  enabled: false
+
+# Possibly play with this in the future.
+#nat46x64Gateway:
+#  enabled: false
+
+# Play with in the future.
+# bgp:
+# ...
+#   masquerade:
+
+# Possibly use in the future.
+# ingressController:
+#   enabled: false
+# ...
+
+# Another play with in the future. e2e encryption over wireguard/ipsec
+# encryption:
+#   enabled: false
+
+# Related to eBPF masquarde
+# ipMasqAgent:
+
+ipv4:
+  enabled: false
+
+ipv6:
+  enabled: true
+
+enableIPv6Masquerade: true
+
+ipv6NativeRoutingCIDR: "fd73:6172:6168:400::/104"
+
+# Future use.
+# monitor:
+#   enabled: false
+
+# Future use
+# prometheus:
+#   enabled: false
+
+tunnelProtocol: ""
+routingMode: native
+
+operator:
+  replicas: 1
+
+# https://github.com/cilium/cilium/issues/20756
+# https://github.com/cilium/cilium/issues/21538
+ipam:
+  operator:
+    clusterPoolIPv6PodCIDRList: ["fd73:6172:6168:400::/104"]
+    clusterPoolIPv6MaskSize: 120

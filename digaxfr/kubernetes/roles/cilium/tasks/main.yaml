@@ -1,0 +1,9 @@
+---
+# Out of band things:
+#   - Install helm
+#   - helm repo add cilium https://helm.cilium.io/
+#   - Pull down the chart
+
+# Generate our own helm-rendered manifests
+# Apply manifests
+# Perform checks

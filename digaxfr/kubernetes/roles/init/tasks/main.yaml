@@ -25,11 +25,9 @@
     group: root
     mode: '0600'
 
+# FIXME: THis is not idempotent.
 - name: Remove control-plane label
   when: kube_cluster_mode == 'single'
   ansible.builtin.command: >
     kubectl taint nodes --all node-role.kubernetes.io/control-plane-
   changed_when: true
-
-# For standalone, we will use Cilium CNI.
-# - include_tasks: cilium.yaml
