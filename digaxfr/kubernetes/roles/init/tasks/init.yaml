@@ -1,0 +1,60 @@
+---
+- name: Create a tempdir
+  ansible.builtin.tempfile:
+    state: directory
+  register: _temp
+
+- name: Perform cluster initialization
+  block:
+    - name: Template kubeadm
+      ansible.builtin.template:
+        src: kubeadm-config.yaml.j2
+        dest: '{{ _temp.path }}/kubeadm-config.yaml'
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Create PKI directory
+      ansible.builtin.file:
+        path: /etc/kubernetes/pki/etcd
+        state: directory
+        owner: root
+        group: root
+        mode: '0640'
+
+    - name: Template out etcd certs
+      ansible.builtin.copy:
+        content: '{{ item.content }}'
+        dest: '/etc/kubernetes/pki/etcd/etcd-{{ item.name }}.pem'
+        owner: root
+        group: root
+        mode: '0640'
+      loop:
+        - name: ca
+          content: '{{ etcd_clients_ca }}'
+        - name: cert
+          content: '{{ kube_etcd_client_apiserver_cert }}'
+        - name: cert-key
+          content: '{{ kube_etcd_client_apiserver_key }}'
+      loop_control:
+        label: '{{ item.name }}'
+
+    - name: Execute kubeadm init
+      ansible.builtin.command: >
+        kubeadm init --skip-token-print --config {{ _temp.path }}/kubeadm-config.yaml
+      changed_when: true
+      register: _kubeadm_init
+
+  always:
+    - name: Cleanup
+      ansible.builtin.file:
+        path: '{{ _temp.path }}'
+        state: absent
+
+    - name: Show kubeadm output
+      ansible.builtin.debug:
+        var: _kubeadm_init.stdout_lines
+
+    - name: Show kubeadm output
+      ansible.builtin.debug:
+        var: _kubeadm_init.stderr_lines

@@ -1,0 +1,35 @@
+---
+- name: Quick check to see if kube-apiserver exists
+  ansible.builtin.stat:
+    path: /etc/kubernetes/manifests/kube-apiserver.yaml
+  register: _stat_apiserver
+
+- name: Initialize the cluster
+  when: not _stat_apiserver.stat.exists
+  ansible.builtin.include_tasks: init.yaml
+
+- name: Create kube directory
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Copy admin.conf
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Remove control-plane label
+  when: kube_cluster_mode == 'single'
+  ansible.builtin.command: >
+    kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+  changed_when: true
+
+# For standalone, we will use Cilium CNI.
+# - include_tasks: cilium.yaml
