@@ -34,7 +34,8 @@ COMMIT
 
 {% if "etcd" in group_names %}
 -A INPUT -m conntrack --ctstate NEW -p tcp --dport 2379 -j ACCEPT
--A INPUT -m conntrack --ctstate NEW -p tcp --dport 2380 -s {% for host in groups['etcd'] %}{{ hostvars[host].ansible_default_ipv6.address }}{% if not loop.last %},{% endif %}{% endfor %} -j ACCEPT
+-A INPUT -m conntrack --ctstate NEW -p tcp --dport 2380 -j ACCEPT
+#-A INPUT -m conntrack --ctstate NEW -p tcp --dport 2380 -s {% for host in groups['etcd'] %}{{ hostvars[host].ansible_default_ipv6.address }}{% if not loop.last %},{% endif %}{% endfor %} -j ACCEPT
 {% endif %}
 
 {% if host_networking.ip6tables.additional_rules.filter is defined %}
@@ -61,4 +62,7 @@ COMMIT
 -A DXF-CNI-FWD -i podman+ -o podman+ -j ACCEPT
 {% endif %}
 
+{% if "k8s_control_plane" in group_names %}
+-A INPUT -p tcp --dport 6446 -j ACCEPT
+{% endif %}
 COMMIT

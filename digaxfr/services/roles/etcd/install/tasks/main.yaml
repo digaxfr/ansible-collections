@@ -61,9 +61,11 @@
       - --initial-advertise-peer-urls=https://[{{ ansible_default_ipv6.address }}]:2380
       - --initial-cluster={{ _initial_cluster }}
       - --key-file=/etc/etcd/clients.key
-      - --listen-client-urls=https://[::1]:2379,https://[{{ ansible_default_ipv6.address }}]:2379
+#      - --listen-client-urls=https://[::1]:2379,https://[{{ ansible_default_ipv6.address }}]:2379
+      - --listen-client-urls=https://[::0]:2379
       - --listen-metrics-urls=http://[::1]:2381
-      - --listen-peer-urls=https://[{{ ansible_default_ipv6.address }}]:2380
+#      - --listen-peer-urls=https://[{{ ansible_default_ipv6.address }}]:2380
+      - --listen-peer-urls=https://[::0]:2380
       - --name={{ ansible_fqdn }}
       - --peer-cert-file=/etc/etcd/peers.crt
       - --peer-client-cert-auth=true
@@ -131,3 +133,5 @@
 - name: Show output of healthcheck
   ansible.builtin.debug:
     var: _etcd_exec_health.stdout_lines
+
+# Add systemd enablement of container. Fix it later. Lazy again.
