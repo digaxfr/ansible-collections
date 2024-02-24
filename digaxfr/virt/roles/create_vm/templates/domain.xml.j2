@@ -20,11 +20,19 @@
   <devices>
     <controller type="usb" index="0" model="none"/>
     <controller type="scsi" model="virtio-scsi"/>
+{% for disk in virt_disks %}
     <disk type="file" device="disk">
       <driver name="qemu" type="qcow2"/>
-      <source file="/var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2"/>
-      <target dev="vda" bus="virtio"/>
+      <iotune>
+        <total_bytes_sec>{{ disk.total_bytes_sec | default(default_disk_throughput_bytes) }}</total_bytes_sec>
+        <total_bytes_sec_max>{{ disk.total_bytes_sec_max | default(default_disk_throughput_bytes_max) }}</total_bytes_sec_max>
+        <total_iops_sec>{{ disk.total_iops_sec | default(default_disk_iops) }}</total_iops_sec>
+        <total_iops_sec_max>{{ disk.total_iops_sec_max | default(default_disk_iops_max) }}</total_iops_sec_max>
+      </iotune>
+      <source file="/var/lib/libvirt/images/{{ inventory_hostname }}/{{ disk['name'] }}.qcow2"/>
+      <target dev="{{ disk['name'] }}" bus="virtio"/>
     </disk>
+{% endfor %}
     <disk type="file" device="cdrom">
       <driver name="qemu" type="raw"/>
       <source file="/var/lib/libvirt/images/{{ inventory_hostname }}/cloud-init.iso"/>
