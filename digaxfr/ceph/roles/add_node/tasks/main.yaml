@@ -1,0 +1,38 @@
+---
+# cephadm checks for an existing cluster by seeing if /etc/ceph/ceph.conf
+# exists.
+- name: Check to see if ceph.conf exists already
+  ansible.builtin.stat:
+    path: /etc/ceph/ceph.conf
+  register: _ceph_conf
+
+# Alternative way to check on bootstraper.
+# cephadm shell -- ceph orch host ls vm-ceph-osd-02.rpi5-01.lab.t0fu.dev -f json
+
+# Copy over Ceph SSH key from bootstraper.
+- name: Execute add node block
+  when: not _ceph_conf.stat.exists
+  block:
+    - name: Retrieve the ceph.pub key from bootstrap node
+      delegate_to: '{{ groups.ceph_bootstraper[0] }}'
+      ansible.builtin.slurp:
+        src: /etc/ceph/ceph.pub
+      register: _ceph_pub
+
+    - name: Place ceph.pub into ssh auth keys
+      ansible.builtin.lineinfile:
+        path: /home/{{ ansible_user }}/.ssh/authorized_keys
+        line: '{{ _ceph_pub.content | b64decode }}'
+
+    - name: Add node
+      delegate_to: '{{ groups.ceph_bootstraper[0] }}'
+      ansible.builtin.command: >-
+        cephadm shell -- ceph orch host add {{ inventory_hostname }}
+      changed_when: true
+
+    - name: Add admin node label if admin node
+      when: '"ceph_admin" in group_names'
+      delegate_to: '{{ groups.ceph_bootstraper[0] }}'
+      ansible.builtin.command: >-
+        cephadm shell -- ceph orch host label add {{ inventory_hostname }} _admin
+      changed_when: true

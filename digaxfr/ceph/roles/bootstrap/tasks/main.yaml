@@ -36,36 +36,36 @@
 # Need to think about static setting for mgrs?
 # Copy over SSH keys to other hosts, or really we should supply our own in the future.
 
-- name: Add additional hosts
-  ansible.builtin.command: >-
-    {{ item }}
-  changed_when: true
-  loop:
-    - cephadm shell -- ceph orch host add {{ ceph_orch_host_add_rpi5_02 }}
-    - cephadm shell -- ceph orch host add {{ ceph_orch_host_add_rpi5_03 }}
-    - cephadm shell -- ceph orch host label add {{ ceph_orch_host_label_add_rpi5_02 }} _admin
-    - cephadm shell -- ceph orch host label add {{ ceph_orch_host_label_add_rpi5_03 }} _admin
-
-# Configure Monitors here.
-# For now, using 1 mon on the lab environment. Increase it when we have a better grasp on maintenance tasks/graceful shutdowns, etc.
-# cephadm shell -m ./mon.yaml:/mnt/mon.yaml ./osd.yaml:/mnt/osd.yaml ./mgr.yaml:/mnt/mgr.yaml -- ceph orch apply -i /mnt/mon.yaml
-
-# Obviously break this out to individual nodes + disks/OSDs later on and not hard coded.
-- name: Add OSDs
-  ansible.builtin.command: >-
-    cephadm shell -- ceph orch daemon add osd {{ item }}:data_devices=/dev/ceph_block_0/block_0,db_devices=/dev/ceph_block_0/db_0,wal_devices=/dev/ceph_block_0/wal_0
-  changed_when: true
-  loop: '{{ groups.ceph_osd }}'
-
-- name: Add RBD pools
-  ansible.builtin.command: >-
-    cephadm shell -- {{ item }}
-  changed_when: true
-  loop:
-    - ceph osd pool create libvirt-images
-    - ceph osd pool create libvirt-vms
-    - ceph osd pool application enable libvirt-images rbd
-    - ceph osd pool application enable libvirt-vms rbd
+#- name: Add additional hosts
+#  ansible.builtin.command: >-
+#    {{ item }}
+#  changed_when: true
+#  loop:
+#    - cephadm shell -- ceph orch host add {{ ceph_orch_host_add_rpi5_02 }}
+#    - cephadm shell -- ceph orch host add {{ ceph_orch_host_add_rpi5_03 }}
+#    - cephadm shell -- ceph orch host label add {{ ceph_orch_host_label_add_rpi5_02 }} _admin
+#    - cephadm shell -- ceph orch host label add {{ ceph_orch_host_label_add_rpi5_03 }} _admin
+#
+## Configure Monitors here.
+## For now, using 1 mon on the lab environment. Increase it when we have a better grasp on maintenance tasks/graceful shutdowns, etc.
+## cephadm shell -m ./mon.yaml:/mnt/mon.yaml ./osd.yaml:/mnt/osd.yaml ./mgr.yaml:/mnt/mgr.yaml -- ceph orch apply -i /mnt/mon.yaml
+#
+## Obviously break this out to individual nodes + disks/OSDs later on and not hard coded.
+#- name: Add OSDs
+#  ansible.builtin.command: >-
+#    cephadm shell -- ceph orch daemon add osd {{ item }}:data_devices=/dev/ceph_block_0/block_0,db_devices=/dev/ceph_block_0/db_0,wal_devices=/dev/ceph_block_0/wal_0
+#  changed_when: true
+#  loop: '{{ groups.ceph_osd }}'
+#
+#- name: Add RBD pools
+#  ansible.builtin.command: >-
+#    cephadm shell -- {{ item }}
+#  changed_when: true
+#  loop:
+#    - ceph osd pool create libvirt-images
+#    - ceph osd pool create libvirt-vms
+#    - ceph osd pool application enable libvirt-images rbd
+#    - ceph osd pool application enable libvirt-vms rbd
 
 # We have to create a key now for clients to use.
 # ceph auth get-or-create client.qemu mon 'profile rbd' osd 'profile rbd pool=vms, profile rbd-read-only pool=images' mgr 'profile rbd pool=images'

@@ -4,13 +4,13 @@
     name: '{{ ceph_packages }}'
     state: present
 
-- name: Add Ceph repo
-  ansible.builtin.command: >-
-    cephadm add-repo --release {{ ceph_release }}
-  changed_when: true
-
-# Does not seem to be useful but following the directions anyway...
-- name: Install packages
-  ansible.builtin.command: >-
-    cephadm install
-  changed_when: true
+#- name: Add Ceph repo
+#  ansible.builtin.command: >-
+#    cephadm add-repo --release {{ ceph_release }}
+#  changed_when: true
+#
+## Does not seem to be useful but following the directions anyway...
+#- name: Install packages
+#  ansible.builtin.command: >-
+#    cephadm install
+#  changed_when: true
