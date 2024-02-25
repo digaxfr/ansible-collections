@@ -1,0 +1,77 @@
+---
+# For now we are going to hard code some values.
+# This is idempotent by cephadm/ceph.
+- name: Add OSDs
+  ansible.builtin.command: >-
+    cephadm shell -- ceph orch daemon add osd {{ inventory_hostname }}:data_devices=/dev/vdc,/dev/vdd,/dev/vde,/dev/vdf,/dev/vdg,db_devices=/dev/vdb,osds_per_device=1
+  register: _add_osd
+  changed_when: '"Created no osd(s)" not in _add_osd.stdout'
+
+# Everything below is legacy. Left in case I need to borrow code or revisit history.
+#- name: Check if keyring exists for bootstrap-osd
+#  ansible.builtin.command: >-
+#    cephadm shell -- ls /var/lib/ceph/bootstrap-osd/ceph.keyring
+#  register: _ls_ceph_keyring
+#  changed_when: false
+#  failed_when: false
+#
+## This isn't working.
+#- name: Generate auth client keyring
+#  ansible.builtin.command: >-
+#    cephadm shell -- ceph auth get client.bootstrap-osd -o /var/lib/ceph/bootstrap-osd/ceph.keyring
+#  changed_when: true
+#  when: (_ls_ceph_keyring.stdout_lines | length) == 0
+#
+#- name: Prepare block.db/block.wal
+#  community.general.lvg:
+#    vg: ceph_db_0
+#    pvs:
+#      - /dev/vdb
+#
+#- name: Create block.db LVs
+#  community.general.lvol:
+#    vg: ceph_db_0
+#    lv: 'db_{{ item }}'
+#    size: 6g
+#  loop:
+#    - vdc
+#    - vdd
+#    - vde
+#    - vdf
+#    - vdg
+#
+#- name: Prepare OSDs
+#  community.general.lvg:
+#    vg: ceph_block_{{ item }}
+#    pvs:
+#      - /dev/{{ item }}
+#  loop:
+#    - vdc
+#    - vdd
+#    - vde
+#    - vdf
+#    - vdg
+#
+## Apparentely using '100%FREE' is not idempotent per the documentation. It does cause problems.
+#- name: Create data LVs
+#  community.general.lvol:
+#    vg: ceph_block_{{ item }}
+#    lv: 'block_{{ item }}'
+#    size: 64G
+#  loop:
+#    - vdc
+#    - vdd
+#    - vde
+#    - vdf
+#    - vdg
+#
+#- name: Create the OSDs
+#  ansible.builtin.command: >-
+#    cephadm shell -- ceph-volume lvm create --bluestore --data ceph_block_{{ item }}/block_{{ item }} --block.db ceph_db_0/db_{{ item }}
+#  changed_when: true
+#  loop:
+#    - vdc
+#    - vdd
+#    - vde
+#    - vdf
+#    - vdg

@@ -30,8 +30,11 @@
   loop:
     - cephadm shell -- ceph config set global osd_pool_default_size 2
     - cephadm shell -- ceph config set global osd_pool_default_min_size 1
+    - cephadm shell -- ceph config set osd osd_memory_target 3221225472
     - cephadm shell -- ceph orch apply mon --unmanaged
     - 'cephadm shell -- ceph config set mon public_network "{{ ceph_public_mon_network }}"'
+
+# We can make osd_memory_target idempotent later: ceph config get osd osd_memory_target
 
 # Need to think about static setting for mgrs?
 # Copy over SSH keys to other hosts, or really we should supply our own in the future.
