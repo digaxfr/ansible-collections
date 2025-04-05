@@ -1,0 +1,28 @@
+---
+- name: Generate temporary facts
+  ansible.builtin.set_fact:
+    _ip4_int_networks: "{{ networks.ip4.values() | map(attribute='prefix') | list + ['127.0.0.0/8'] }}"
+    _ip6_int_networks: "{{ networks.ip6.values() | map(attribute='prefix') | list + ['fe80::/10'] }}"
+
+- name: Template nftables configuration
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart nftables
+
+- name: Check syntax
+  ansible.builtin.command: >
+    nft --check --file /etc/nftables.conf
+  changed_when: false
+
+- name: Enable and start nftables
+  ansible.builtin.systemd:
+    name: nftables
+    enabled: true
+    state: started
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

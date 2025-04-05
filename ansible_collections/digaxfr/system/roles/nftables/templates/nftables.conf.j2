@@ -26,16 +26,16 @@ add chain ip filter forward { type filter hook forward priority filter; policy a
 
 # Define sets
 add set ip6 filter int_networks { type ipv6_addr; flags interval; comment "Internal networks"; }
-add element ip6 filter int_networks { fe80::/10, fd73:6172:6168::/48, 2001:470:8962::/48 }
+add element ip6 filter int_networks { {{ _ip6_int_networks | join(",") }}}
 
 add set ip6 filter ifname_primary { type ifname; }
-add element ip6 filter ifname_primary { "enp7s0" }
+add element ip6 filter ifname_primary { "{{ ansible_default_ipv6.interface | default(ansible_default_ipv4.interface) }}" }
 
 add set ip filter int_networks { type ipv4_addr; flags interval; comment "Internal networks"; }
-add element ip filter int_networks { 127.0.0.0/8, 192.168.0.0/16 }
+add element ip filter int_networks { {{ _ip4_int_networks | join(",") }} }
 
 add set ip filter ifname_primary { type ifname; }
-add element ip filter ifname_primary { "enp7s0" }
+add element ip filter ifname_primary { "{{ ansible_default_ipv4.interface | default(ansible_default_ipv6.interface) }}" }
 
 
 ### FILTER INPUT
@@ -55,44 +55,32 @@ add rule ip filter input iif lo counter accept
 # ssh
 add rule ip6 filter input tcp dport 22 ip6 saddr @int_networks counter accept comment "ssh"
 
-# Sunshine
-add rule ip6 filter input tcp dport 47984 ip6 saddr @int_networks counter accept comment "Sunshine"
-add rule ip6 filter input tcp dport 47989 ip6 saddr @int_networks counter accept comment "Sunshine"
-add rule ip6 filter input tcp dport 48010 ip6 saddr @int_networks counter accept comment "Sunshine"
-add rule ip6 filter input udp dport { 47998-48000 } ip6 saddr @int_networks counter accept comment "Sunshine"
+# Examples left here for easy reference.
+# add rule ip6 filter input tcp dport 47984 ip6 saddr @int_networks counter accept comment "Example single port"
+# add rule ip6 filter input udp dport { 47998-48000 } ip6 saddr @int_networks counter accept comment "Example multi-port"
 
-# Self-Hosted things
-# add rule ip6 filter input tcp dport 8096 ip6 saddr @int_networks counter accept comment "Jellyfin http port"
-add rule ip6 filter input tcp dport 8443 ip6 saddr @int_networks counter accept comment "Reverse https proxy"
-add rule ip filter input tcp dport 8443 ip saddr @int_networks counter accept comment "Reverse https proxy"
-
-# mDNS
-add rule ip6 filter input udp dport 5353 ip6 saddr @int_networks counter accept comment "mdns"
-add rule ip filter input udp dport 5353 ip saddr @int_networks counter accept comment "mdns"
-
-# Steam In-Home Streaming - ip4 only
-add rule ip filter input udp dport { 27031, 27036 } ip saddr @int_networks counter accept comment "Steam streaming"
-add rule ip filter input tcp dport { 27036, 27037 } ip saddr @int_networks counter accept comment "Steam streaming"
+# IPv4 examples
+# add rule ip filter input udp dport { 27031, 27036 } ip saddr @int_networks counter accept comment "Steam streaming"
 
 # Log helper when we need it.
 # add rule ip6 filter input log prefix "Dropped packet: " counter drop
 
-# MUST BE LAST ON INPUT CHAIN!
-add rule ip6 filter input limit rate 6/minute burst 5 packets counter log prefix "Drop ip6 Input: " comment "Log sample of input drops"
-add rule ip6 filter input counter drop comment "Explicit drop"
+# Logging examples. Must be last on the chain but before the explict drop.
+# add rule ip6 filter input limit rate 6/minute burst 5 packets counter log prefix "Drop ip6 Input: " comment "Log sample of input drops"
+# add rule ip filter input limit rate 6/minute burst 5 packets counter log prefix "Drop ip4 Input: " comment "Log sample of input drops"
 
-add rule ip filter input limit rate 6/minute burst 5 packets counter log prefix "Drop ip4 Input: " comment "Log sample of input drops"
+# Explicit drops
+add rule ip6 filter input counter drop comment "Explicit drop"
 add rule ip filter input counter drop comment "Explicit drop"
 
 
-
 ### FILTER FORWARD
-add rule ip6 filter forward iifname clat oifname @ifname_primary counter accept
-add rule ip6 filter forward iifname @ifname_primary oifname clat counter accept
-add rule ip6 filter forward limit rate 6/minute burst 5 packets counter log prefix "Drop ip6 Forward: " comment "Log sample of forward drops"
+# add rule ip6 filter forward iifname clat oifname @ifname_primary counter accept
+# add rule ip6 filter forward iifname @ifname_primary oifname clat counter accept
+# add rule ip6 filter forward limit rate 6/minute burst 5 packets counter log prefix "Drop ip6 Forward: " comment "Log sample of forward drops"
 add rule ip6 filter forward counter drop comment "Explicit drop"
 
-add rule ip filter forward limit rate 6/minute burst 5 packets counter log prefix "Drop ip4 Forward: " comment "Log sample of forward drops"
+# add rule ip filter forward limit rate 6/minute burst 5 packets counter log prefix "Drop ip4 Forward: " comment "Log sample of forward drops"
 add rule ip filter forward counter drop comment "Explicit drop"
 
 # Old/unused references
