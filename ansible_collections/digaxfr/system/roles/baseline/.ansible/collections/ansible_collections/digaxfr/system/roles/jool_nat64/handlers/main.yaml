@@ -1,0 +1,5 @@
+---
+- name: 'restart jool'
+  ansible.builtin.systemd:
+    service: jool
+    state: restarted

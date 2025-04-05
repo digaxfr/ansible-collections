@@ -13,7 +13,6 @@ baseline_debian_packages:
   - nftables
   - socat
   - sysstat
-  - systemd-zram-generator
   - tcpdump
   - vim
 

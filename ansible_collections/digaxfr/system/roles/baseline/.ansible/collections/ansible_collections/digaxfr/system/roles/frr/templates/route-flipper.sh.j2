@@ -1,0 +1,34 @@
+#!/bin/bash
+# This is a cheap workaround where Zebra cannot override network admin and
+# distance costs into the Linux Kernel when the Kernel is being used as
+# the forwarding plane.
+#
+# If a BGP route is detected for default route, the statically assigned default
+# gateway will get removed. Zebra then immediately swoops in and programs the
+# BGP route.
+#
+# ... and vice versa, when we no longer see the route in vtysh, we can reinsert
+# the static defualt gateway.
+#
+# This will be excuted via cron every n-minutes of whatever is preferred.
+
+set -e
+
+primary_iface="{{ host_networking.mgmt_iface }}"
+
+# First detect if we are already have the default-originate route installed.
+if ip -6 route get ::0 | grep --silent "proto bgp"; then
+    exit 0
+fi
+
+# Detect if the route is received. If it is, delete the default route.
+if  vtysh -c "show ip bgp ipv6 ::0" | grep --silent -E '^Paths: \([0-9]+ available'; then
+    ip -6 route delete default || true
+    sleep 1
+    ip -6 neighbor flush all
+    exit 0
+fi
+
+# BGP default-originate not detected. We need to ensure that our static default
+# route is there.
+rdisc6 --single -n {{ host_networking.mgmt_iface }}

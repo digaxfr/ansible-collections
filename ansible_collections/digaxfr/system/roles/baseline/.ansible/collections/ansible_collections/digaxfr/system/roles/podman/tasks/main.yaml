@@ -1,0 +1,20 @@
+---
+- name: Install podman (Debian)
+  ansible.builtin.apt:
+    name: podman
+    state: present
+  when: ansible_os_family == 'Debian'
+
+# At some point, the default CNI network for Podman must have IPv4. I do not
+# know if this has since been changed/fixed.
+- name: Set up IP6 network
+  containers.podman.podman_network:
+    driver: bridge
+    gateway: '{{ podman_networks.ip6.subnet
+      | ansible.utils.ipaddr(1)
+      | ansible.utils.ipaddr("address") }}'
+    name: podman-ip6
+    subnet: '{{ podman_networks.ip6.subnet }}'
+    recreate: false
+    disable_dns: true
+    ipv6: true

@@ -1,0 +1,26 @@
+[connection]
+autoconnect=yes
+id={{ _interface.key }}
+type=vlan
+interface-name={{ _interface.key }}
+
+[ethernet]
+
+[vlan]
+flags=1
+id={{ _interface.value.vlan.id }}
+parent={{ _interface.value.vlan.parent }}
+
+[ipv4]
+method=disabled
+
+[ipv6]
+addr-gen-mode=default
+{% for address in (_interface.value.addresses | selectattr("type", "==", "ipv6")) %}
+address{{ loop.index }}={{ address.address }}
+{% endfor %}
+method=manual
+ignore-auto-dns=true
+ignore-auto-routes=true
+
+[proxy]

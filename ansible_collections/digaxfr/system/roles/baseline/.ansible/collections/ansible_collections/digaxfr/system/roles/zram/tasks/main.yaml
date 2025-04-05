@@ -1,0 +1,39 @@
+---
+- name: Install package
+  ansible.builtin.apt:
+    name: zram-tools
+    state: present
+
+# https://www.kernel.org/doc/html/next/admin-guide/blockdev/zram.html
+# So we want to actually make the disk size larger than physrical ram, but
+# we need to do an educated guess on compression ratio.
+- name: Configure zram
+  ansible.builtin.lineinfile:
+    path: /etc/default/zramswap
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+  loop:
+    - regexp: '^ALGO=.*'
+      line: ALGO=zstd
+    - regexp: '^PERCENT=.*'
+      line: PERCENT=350
+  notify: Restart zramswap
+
+# https://wiki.archlinux.org/title/Zram - Values from here and apparently well tested.
+- name: Configure sysctl settings for zram
+  ansible.posix.sysctl:
+    name: '{{ item.name }}'
+    value: '{{ item.value }}'
+    state: present
+  loop:
+    - name: vm.swappiness
+      value: 180
+    - name: vm.watermark_boost_factor
+      value: 0
+    - name: vm.watermark_scale_factor
+      value: 125
+    - name: vm.page-cluster
+      value: 0
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

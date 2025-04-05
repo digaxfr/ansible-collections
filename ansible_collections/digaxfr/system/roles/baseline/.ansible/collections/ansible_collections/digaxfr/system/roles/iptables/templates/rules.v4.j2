@@ -1,0 +1,33 @@
+*nat
+:PREROUTING ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+COMMIT
+
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m conntrack --ctstate NEW --dport 22 -j ACCEPT
+-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+{% if "containerd" in group_names %}
+-A FORWARD -d {{ containerd_cidr }} -j ACCEPT
+{% endif %}
+{% if "kube_snc" in group_names %}
+-A INPUT -p tcp -m conntrack --ctstate NEW --dport 6443 -j ACCEPT
+{% endif %}
+{% if "wireguard_server" in group_names %}
+-A INPUT -p udp --dport 51820 -j ACCEPT
+{% endif %}
+{% if "frr" in group_names %}
+-A INPUT -m conntrack --ctstate NEW -p tcp --dport 179 -j ACCEPT
+{% endif %}
+{% if "mdns" in group_names %}
+-A INPUT -m conntrack --ctstate NEW -p udp --dport 5353 ! -i eth1 -j ACCEPT
+{% endif %}
+{% if "k3s" in group_names %}
+-A INPUT -m conntrack --ctstate NEW -p tcp --dport 6443 -j ACCEPT
+{% endif %}
+COMMIT

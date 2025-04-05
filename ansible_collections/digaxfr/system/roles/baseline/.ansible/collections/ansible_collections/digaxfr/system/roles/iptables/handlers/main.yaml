@@ -1,0 +1,6 @@
+---
+- name: restart iptables
+  ansible.builtin.systemd:
+    #name: '{{ iptables_systemd_name | trim }}'
+    name: '{{ iptables_systemd_name }}'
+    state: restarted

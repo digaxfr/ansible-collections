@@ -1,0 +1,67 @@
+---
+- name: Install packages
+  ansible.builtin.apt:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - frr
+    - ndisc6
+
+- name: Allow IP forwarding
+  ansible.builtin.sysctl:
+    name: '{{ item.name }}'
+    value: '{{ item.value }}'
+    state: present
+  loop:
+  - name: net.ipv4.conf.all.forwarding
+    value: 1
+  - name: net.ipv6.conf.all.forwarding
+    value: 1
+
+- name: Template out configs
+  ansible.builtin.template:
+    src: '{{ item }}.j2'
+    dest: '/etc/frr/{{ item }}'
+    owner: frr
+    group: frr
+    mode: 0640
+  loop:
+  - daemons
+  - frr.conf
+  - vtysh.conf
+  notify: restart frr
+
+- name: Systemd
+  ansible.builtin.systemd:
+    name: frr
+    enabled: yes
+    state: started
+
+- name: Template out route-flipper script
+  ansible.builtin.template:
+    src: route-flipper.sh.j2
+    dest: /usr/local/bin/route-flipper.sh
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Template out route-flipper systemd files
+  ansible.builtin.template:
+    src: '{{ item }}.j2'
+    dest: '/etc/systemd/system/{{ item }}'
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+  - route-flipper.service
+  - route-flipper.timer
+
+- name: Enable route-flipper systemd timer
+  ansible.builtin.systemd:
+    name: '{{ item }}'
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  loop:
+  - route-flipper.service
+  - route-flipper.timer

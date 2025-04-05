@@ -1,0 +1,12 @@
+---
+iptables_packages:
+- iptables
+- iptables-persistent
+
+# Do not forget to trim this variable when using it.
+iptables_systemd_name: |-
+  {%- if ansible_distribution == 'Debian' and ansible_distribution_release == 'buster' -%}
+  netfilter-persistent
+  {%- else -%}
+  iptables
+  {%- endif -%}

@@ -1,0 +1,77 @@
+---
+- name: Sysctl stuff
+  ansible.posix.sysctl:
+    name: '{{ item.name }}'
+    value: '{{ item.value }}'
+    state: present
+  loop:
+    - name: net.ipv4.conf.all.forwarding
+      value: 1
+    - name: net.ipv6.conf.all.forwarding
+      value: 1
+
+- name: Install package
+  ansible.builtin.apt:
+    name: jool-dkms,jool-tools,raspberrypi-kernel-headers
+    state: present
+
+- name: Load the module
+  community.general.modprobe:
+    name: jool
+    state: present
+
+- name: Load on boot
+  ansible.builtin.lineinfile:
+    path: /etc/modules-load.d/modules.conf
+    line: 'jool'
+    state: present
+
+- name: Create configuration directory
+  ansible.builtin.file:
+    path: /etc/jool
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Create jool configuration
+  ansible.builtin.template:
+    src: jool.conf.j2
+    dest: /etc/jool/jool.conf
+    owner: root
+    group: root
+    mode: '0640'
+  notify: 'restart jool'
+
+- name: Ensure service is started and enabled
+  ansible.builtin.systemd:
+    service: jool
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+# Legacy code below. Keeping it just in case
+#
+#- name: Check if jool instances exists already
+#  ansible.builtin.command: >
+#    jool --instance {{ item.key }} instance status
+#  register: _jool_status
+#  changed_when: no
+#  loop: '{{ jool.instances | dict2items }}'
+#
+#- debug:
+#    msg: '{{ item }}'
+#  loop: '{{ _jool_status.results }}'
+#
+#- name: Create jool instances
+#  ansible.builtin.command: >
+#    jool instance add {{ item.item.key }} --{{ item.item.value.type }} --pool6 {{ item.item.value.prefix }}
+#  when: "'Running' not in item.stdout"
+#  loop: '{{ _jool_status.results }}'
+
+# iptables rules needs to be configured. TBD as the current router is a mix-and-match of manual and automation.
+# ip6tables -t mangle -A PREROUTING -s fd73:6172:6168:a10::/60   -j JOOL --instance "gardevoir_labs"
+# iptables -t mangle -A PREROUTING -j JOOL --instance "gardevoir_labs"

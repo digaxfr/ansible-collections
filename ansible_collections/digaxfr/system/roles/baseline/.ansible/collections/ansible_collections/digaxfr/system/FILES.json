@@ -1,0 +1,579 @@
+{
+ "files": [
+  {
+   "name": ".",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "README.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "e1880ec7246a226abe88fa516213c09398892bfb0766dbf9fc65df96bc679afd",
+   "format": 1
+  },
+  {
+   "name": "meta",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "meta/runtime.yml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "7b1d88aa041500f5b4a36c20a58adf116fbb48af9b5aa3be93949bd12cdae9dd",
+   "format": 1
+  },
+  {
+   "name": "plugins",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "plugins/README.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "198c518c26e91bc01c3d50d163582796f2fa21c7b66a5581394b031469942d72",
+   "format": 1
+  },
+  {
+   "name": "roles",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/apt_update_cache",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/apt_update_cache/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/apt_update_cache/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "575b301ba808f4272df146218310f49ed88b0c772f9b534a0f4da04ec1d9a759",
+   "format": 1
+  },
+  {
+   "name": "roles/baseline",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/defaults",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/defaults/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "4965a331880fc03f23960071a7f8caa5d53f02af5f4c3b54b6aef321b4822c49",
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/handlers",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/handlers/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "1e7d219ef56d3bd10ceb83fedfe3de6b2a1dfe14ae33c6d0cea8b74d83ba8c05",
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "5f52aa4821c30132321fe05cc462ac0fe513ebb247744ec0c4ffa83ca02521c5",
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/templates",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/templates/hosts.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "809d9d97996d8b48e3ec8b87755e27fd38535f6fa1b63eb0bf6a2eff1905a769",
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/.ansible",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/.ansible/roles",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/.ansible/collections",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/.ansible/collections/ansible_collections",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/.ansible/collections/ansible_collections/digaxfr",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/baseline/.ansible/modules",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/frr",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/frr/README.md",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "3b6596af8c7998e29a912e89c21be22d9931369830cc2dfb60488997292a4339",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/handlers",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/frr/handlers/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "28687b2eda146d781c38c9976b80b8ee983f291e99c7e3a9fa03503198259f94",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/frr/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "228d0aa7370795f7b993b3d45286e468c9af464e5cc947991e59dce0ce4bb331",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/templates",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/frr/templates/daemons.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "d0c3feabf9a3b41764e1df1d8696ce5214ae8f262095f42662b389fd3e68d830",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/templates/frr.conf.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "af46db7b1335dbe8c03384f554517495a705da2a8d8146d05ec42beda32fd83d",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/templates/route-flipper.service.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "5772a424bb20c565055b98fc1e1831c4adda717d47cb27a7a902a8484df4c479",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/templates/route-flipper.sh.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "473965a27b2038d07e9be9e8ce9d04834a6c6aab421eb49ccd9ae1f876b33c05",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/templates/route-flipper.timer.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "4534d34ccc02fed0b9823875ac0a2003c2bc8adc673918e0f9aeeaf100bd880e",
+   "format": 1
+  },
+  {
+   "name": "roles/frr/templates/vtysh.conf.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "442948aae181901bf4edff20775311fb9b1c227e336acf0a724a09c7dbf0d8da",
+   "format": 1
+  },
+  {
+   "name": "roles/iptables",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/defaults",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/defaults/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "d197ec0bff43abe2a181b654a4b66049fdd6ada4dd06c033d334f1fdb51c5e8a",
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/handlers",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/handlers/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "14efb1e99e159c4db7287eaeb2d2e3800095dfeeab088149f568615acf1a7475",
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "cf97dfce095affb663d60d43156109a65b948105ae5727482652e1f6f862330f",
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/templates",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/templates/rules.v4.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "630d85230d1be8f95f27c73be5003f08c9e87d4eb7ac2ddbf225a7d46114df94",
+   "format": 1
+  },
+  {
+   "name": "roles/iptables/templates/rules.v6.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "754674c5994c03850748a87f11beee47f99a44d6d5b3b71ec96976f8ec2d96ef",
+   "format": 1
+  },
+  {
+   "name": "roles/jool_nat64",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/jool_nat64/handlers",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/jool_nat64/handlers/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "34d361351c0b83b7e314b3b878f63ff08d9bd9f90357638b5bb73f8c3efdf1f3",
+   "format": 1
+  },
+  {
+   "name": "roles/jool_nat64/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/jool_nat64/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "6929ff0a5dacad93c967b379e65ef88992ea2d92637db8515aeaf2bd4670599b",
+   "format": 1
+  },
+  {
+   "name": "roles/jool_nat64/templates",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/jool_nat64/templates/jool.conf.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "2491028bd6d61f15281eb5103bbe17c34b87edad9dd3f74fd3aeeae30744ae6f",
+   "format": 1
+  },
+  {
+   "name": "roles/network",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/network/handlers",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/network/handlers/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "1a11f663fa1414a89780c8be00bf096b928f505ea9f8c209d980de9c17a40d5d",
+   "format": 1
+  },
+  {
+   "name": "roles/network/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/network/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "4d04deca08ca1bce1f0a9f502652cc9cba06048b4a467bf4b31c09e2f4c56345",
+   "format": 1
+  },
+  {
+   "name": "roles/network/templates",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/network/templates/10-managed-devices.conf.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "68ec5e628645f858e208d23f9d4b33c481bd43955f1f96183dbd4522ef9edf08",
+   "format": 1
+  },
+  {
+   "name": "roles/network/templates/bridge.nmconnection.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "86bcd3a2a74eb6fab227314b36cb92e013a5f5564938cd12a76db5ac5be8ea73",
+   "format": 1
+  },
+  {
+   "name": "roles/network/templates/dummy-bridge.nmconnection.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "c4b8dbc3e5629b1496938d7f62829995e793f84864688eb8f19dc45414d0b949",
+   "format": 1
+  },
+  {
+   "name": "roles/network/templates/vlan.nmconnection.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "c046530d2d422e04199f256fa0da0517a898ca59264c3e4385983a04a5c676d6",
+   "format": 1
+  },
+  {
+   "name": "roles/podman",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/podman/defaults",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/podman/defaults/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "f5d40f88e0ff866070d1106f21a74b538db6369f55ce9c016331ec3ede3ca1e0",
+   "format": 1
+  },
+  {
+   "name": "roles/podman/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/podman/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "31af3fd9d6266645dfdbc1f9661b13832b474998b6e0adb15f744a7139b87ddc",
+   "format": 1
+  },
+  {
+   "name": "roles/radvd",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/radvd/handlers",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/radvd/handlers/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "0fbd9c52db4d56ae42f0153b15202905cfd9c9142359737fa6edb522a87fb263",
+   "format": 1
+  },
+  {
+   "name": "roles/radvd/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/radvd/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "5c1c2429744e51ff476a4b23af148fb1c8c8fe1d33d5756af2aca8c6621c136f",
+   "format": 1
+  },
+  {
+   "name": "roles/radvd/templates",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/radvd/templates/radvd.conf.j2",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "deddd75b30395251ceadb18e69371180e587371c62078fd4e13ac14b8ba2bc55",
+   "format": 1
+  },
+  {
+   "name": "roles/zram",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/zram/handlers",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/zram/handlers/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "6eb1e94608272bcc611125c2d159ad8a841cf31ea6e8adbfc23c52df2cd1422a",
+   "format": 1
+  },
+  {
+   "name": "roles/zram/tasks",
+   "ftype": "dir",
+   "chksum_type": null,
+   "chksum_sha256": null,
+   "format": 1
+  },
+  {
+   "name": "roles/zram/tasks/main.yaml",
+   "ftype": "file",
+   "chksum_type": "sha256",
+   "chksum_sha256": "164567353a5014e0238e6ea12d6c817a9b8f1224c00870732e28bc57aa921333",
+   "format": 1
+  }
+ ],
+ "format": 1
+}

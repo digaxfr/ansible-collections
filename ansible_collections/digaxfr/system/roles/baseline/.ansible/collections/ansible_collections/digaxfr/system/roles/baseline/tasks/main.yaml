@@ -1,0 +1,48 @@
+---
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Template out /etc/hosts file
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ baseline_debian_packages }}"
+    state: present
+  when: ansible_distribution == 'Debian'
+
+- name: Disable and stop unwanted services
+  ansible.builtin.systemd:
+    name: test1
+    enabled: false
+    state: stopped
+
+- name: Discover unwanted systemd services
+  ansible.builtin.command:
+    systemctl list-unit-files {{ `
+  changed_when: False
+
+
+#- name: Disable unwanted services
+#  ansible.builtin.stat:
+#    path: "{{ item }}"
+#  register: _systemd_stat
+#  loop:
+#    - /lib/systemd/system/avahi-daemon.service
+#    - /lib/systemd/system/avahi-daemon.socket
+#    - /lib/systemd/system/dphys-swapfile.service
+#
+# - name: Disable services
+#   ansible.builtin.systemd:
+#     name: '{{ item.item.split("/")[-1] }}'
+#     enabled: false
+#     state: stopped
+#   when:
+#     - item.stat.exists
+#   loop: '{{ _systemd_stat.results }}'

@@ -1,0 +1,30 @@
+{
+ "collection_info": {
+  "namespace": "digaxfr",
+  "name": "system",
+  "version": "1.0.0",
+  "authors": [
+   "Darren Chin <d.chin1@icloud.com>"
+  ],
+  "readme": "README.md",
+  "tags": [],
+  "description": "System type of stuff.",
+  "license": [
+   "GPL-2.0-or-later"
+  ],
+  "license_file": null,
+  "dependencies": {},
+  "repository": "http://example.com/repository",
+  "documentation": "http://docs.example.com",
+  "homepage": "http://example.com",
+  "issues": "http://example.com/issue/tracker"
+ },
+ "file_manifest_file": {
+  "name": "FILES.json",
+  "ftype": "file",
+  "chksum_type": "sha256",
+  "chksum_sha256": "aab7ea234ecbd34ebd551bf9f91bfd1c09c22e3c5fc854a5b7a8ee3bf8fac347",
+  "format": 1
+ },
+ "format": 1
+}
