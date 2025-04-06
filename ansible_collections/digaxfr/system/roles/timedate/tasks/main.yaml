@@ -1,0 +1,23 @@
+---
+- name: Set /etc/localtime
+  ansible.builtin.file:
+    path: /usr/share/zoneinfo/UTC
+    dest: /etc/localtime
+    state: link
+    owner: root
+    group: root
+
+- name: Set /etc/timezone
+  ansible.builtin.copy:
+    dest: /etc/timezone
+    content: "UTC\n"
+    owner: root
+    group: root
+    mode: "0644"
+
+# Default systemd-timesyncd configuration is fine for now.
+- name: Ensure systemd-timesyncd is enabled and started
+  ansible.builtin.systemd:
+    name: systemd-timesyncd.service
+    state: started
+    enabled: true
