@@ -4,6 +4,9 @@ Name=en*
 
 [Network]
 DHCP=no
+{% for macvlan in macvlans %}
+MACVLAN={{ macvlan.name }}
+{% endfor %}
 
 [IPv6AcceptRA]
 Token=eui64

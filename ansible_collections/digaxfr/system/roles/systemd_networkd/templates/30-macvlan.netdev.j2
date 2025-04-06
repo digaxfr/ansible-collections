@@ -1,0 +1,8 @@
+# Ansible managed
+[NetDev]
+Name={{ item.name }}
+Kind=macvlan
+MACAddress={{ item.mac }}
+
+[MACVLAN]
+Mode=bridge

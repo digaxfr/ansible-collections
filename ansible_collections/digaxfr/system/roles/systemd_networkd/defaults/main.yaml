@@ -1,4 +1,6 @@
 ---
+macvlans: []
+
 netplan_files:
   - /etc/netplan/10-dhcp-all-interfaces.yaml
   - /run/systemd/network/10-netplan-all-eth-interfaces.network
