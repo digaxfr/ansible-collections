@@ -55,6 +55,11 @@ add rule ip filter input iif lo counter accept
 # ssh
 add rule ip6 filter input tcp dport 22 ip6 saddr @int_networks counter accept comment "ssh"
 
+# Raw-additions
+{% for rule in additional_nft_rules %}
+{{ rule }}
+{% endfor %}
+
 # Examples left here for easy reference.
 # add rule ip6 filter input tcp dport 47984 ip6 saddr @int_networks counter accept comment "Example single port"
 # add rule ip6 filter input udp dport { 47998-48000 } ip6 saddr @int_networks counter accept comment "Example multi-port"
@@ -70,6 +75,7 @@ add rule ip6 filter input tcp dport 22 ip6 saddr @int_networks counter accept co
 # add rule ip filter input limit rate 6/minute burst 5 packets counter log prefix "Drop ip4 Input: " comment "Log sample of input drops"
 
 # Explicit drops
+# TODO: I think we can make these a separate chain and priority so that these can always be last.
 add rule ip6 filter input counter drop comment "Explicit drop"
 add rule ip filter input counter drop comment "Explicit drop"
 
