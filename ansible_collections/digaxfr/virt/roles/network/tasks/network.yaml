@@ -1,38 +1,41 @@
 ---
-- name: Check to see if the network exists already
-  ansible.builtin.command: >
-    virsh net-list --all --name
-  register: _virsh_net_list
+- name: Check if the network exists
+  ansible.builtin.command: >-
+    virsh net-info {{ _idx_network.key }}
   changed_when: false
-
-- name: Template out config
-  ansible.builtin.template:
-    src: libvirt-network-bridge.xml.j2
-    dest: '{{ _temp.path }}/libvirt-network-bridge-{{ _virt_network.key }}.xml'
-    owner: root
-    group: root
-    mode: '0644'
-  when: _virt_network.key not in _virsh_net_list.stdout_lines
+  failed_when: false
+  register: _net_info
 
 - name: Create the network
-  ansible.builtin.command: >
-    virsh net-define {{ _temp.path }}/libvirt-network-bridge-{{ _virt_network.key }}.xml
-  when: _virt_network.key not in _virsh_net_list.stdout_lines
-  changed_when: true
+  when: _net_info.rc != 0
+  block:
+    - name: Template the config
+      ansible.builtin.template:
+        src: "{{ _idx_network.value.type }}.xml.j2"
+        dest: "{{ _temp.path }}/{{ _idx_network.key }}.xml"
+        owner: root
+        group: root
+        mode: "0644"
 
-- name: Check to see if the network is running
-  ansible.builtin.command: >
-    virsh net-list --inactive --name
-  register: _virsh_net_list
+    - name: Define the network
+      ansible.builtin.command: >-
+        virsh net-define {{ _temp.path }}/{{ _idx_network.key }}.xml
+      changed_when: true
+
+- name: Get the current network info
+  ansible.builtin.command: >-
+    virsh net-info {{ _idx_network.key }}
   changed_when: false
+  register: _net_info
 
-- name: Start the network
-  ansible.builtin.command: >
-    virsh net-start {{ _virt_network.key }}
-  when: _virt_network.key in _virsh_net_list.stdout_lines
+- name: Autostart the network
+  when: _net_info.stdout_lines | select('match', '^Autostart:\\s*yes$') | list | length == 0
+  ansible.builtin.command: >-
+    virsh net-autostart --network {{ _idx_network.key }}
   changed_when: true
 
-- name: Set autostart
-  ansible.builtin.command: >
-    virsh net-autostart {{ _virt_network.key }}
+- name: Start the pool
+  when: _net_info.stdout_lines | select('match', '^Active:\\s*yes$') | list | length == 0
+  ansible.builtin.command: >-
+    virsh net-start {{ _idx_network.key }}
   changed_when: true

@@ -10,7 +10,8 @@
       ansible.builtin.include_tasks: network.yaml
       loop: '{{ virt_networks | dict2items }}'
       loop_control:
-        loop_var: _virt_network
+        label: "{{ _idx_network.key }}"
+        loop_var: _idx_network
       when: virt_networks is defined
 
   always:
