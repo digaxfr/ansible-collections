@@ -11,12 +11,13 @@
     enabled: true
     state: started
 
-- name: Configure sysctl
-  ansible.posix.sysctl:
-    name: net.ipv6.conf.all.forwarding
-    value: 1
-    state: present
-    sysctl_set: true
+# Using macvtap/macvlan does not require forwarding on the host.
+# - name: Configure sysctl
+#   ansible.posix.sysctl:
+#     name: net.ipv6.conf.all.forwarding
+#     value: 1
+#     state: present
+#     sysctl_set: true
 
 - name: Find base image
   ansible.builtin.stat:

@@ -1,4 +1,12 @@
 ---
+- name: Create local pools
+  ansible.builtin.include_tasks: local.yaml
+  when: libvirt_storage_pools.local is defined
+  loop: "{{ libvirt_storage_pools.local | dict2items }}"
+  loop_control:
+    label: "{{ _idx_pool.key }}"
+    loop_var: _idx_pool
+
 - name: Create RBD pool
   ansible.builtin.include_tasks: rbd.yaml
   when: libvirt_storage_pools.rbd is defined

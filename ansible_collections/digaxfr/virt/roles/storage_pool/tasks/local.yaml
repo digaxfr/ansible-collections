@@ -1,0 +1,59 @@
+---
+# lxml needs to be installed on the managed machine which I do not want to do.
+# - name: Create the storage pool
+#   community.libvirt.virt_pool:
+#     command: define
+#     name: "{{ _idx_pool.key }}"
+#     xml: "{{ lookup('template', 'local.xml.j2') }}"
+
+- name: Check if the pool exists
+  ansible.builtin.command: >-
+    virsh pool-info {{ _idx_pool.key }}
+  changed_when: false
+  failed_when: false
+  register: _pool_info
+
+- name: Create the pool
+  when: _pool_info.rc != 0
+  block:
+    - name: Create tempdir
+      ansible.builtin.tempfile:
+        state: directory
+      register: _tempdir
+
+    - name: Template out the config
+      ansible.builtin.template:
+        src: local.xml.j2
+        dest: "{{ _tempdir.path }}/{{ _idx_pool.key }}.xml"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create the pool
+      ansible.builtin.command: >-
+        virsh pool-define {{ _tempdir.path }}/{{ _idx_pool.key }}.xml
+      changed_when: true
+
+  always:
+    - name: Cleanup tempdir
+      ansible.builtin.file:
+        path: "{{ _tempdir.path }}"
+        state: absent
+
+- name: Get current pool info
+  ansible.builtin.command: >-
+    virsh pool-info {{ _idx_pool.key }}
+  changed_when: false
+  register: _pool_info
+
+- name: Autostart the pool
+  when: _pool_info.stdout_lines | select('match', '^Autostart:\\s*yes$') | list | length == 0
+  ansible.builtin.command: >-
+    virsh pool-autostart --pool {{ _idx_pool.key }}
+  changed_when: true
+
+- name: Start the pool
+  when: _pool_info.stdout_lines | select('match', '^State:\\s*running$') | list | length == 0
+  ansible.builtin.command: >-
+    virsh pool-start {{ _idx_pool.key }}
+  changed_when: true
