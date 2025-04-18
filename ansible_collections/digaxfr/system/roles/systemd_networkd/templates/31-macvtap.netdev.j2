@@ -1,0 +1,8 @@
+# Ansible managed
+[NetDev]
+Name={{ item.name }}
+Kind=macvtap
+MACAddress={{ item.mac }}
+
+[MACVTAP]
+Mode=bridge

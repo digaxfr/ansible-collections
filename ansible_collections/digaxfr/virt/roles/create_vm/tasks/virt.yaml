@@ -4,7 +4,7 @@
 
 - name: Ensure base image exists
   ansible.builtin.stat:
-#    path: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
+    # path: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
     path: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
   register: _stat_image
 
@@ -15,13 +15,14 @@
 
 - name: Check if VM exists already exists
   ansible.builtin.command: >
-    virsh list --name --all
-  register: _virsh_list
+    virsh dominfo {{ inventory_hostname }}
+  register: _dominfo
   changed_when: false
+  failed_when: false
 
 - name: Create the VM
   ansible.builtin.include_tasks: create.yaml
-  when: 'inventory_hostname not in _virsh_list.stdout_lines'
+  when: '_dominfo.rc != 0'
 
 - name: Power on the VM
   ansible.builtin.command: >-

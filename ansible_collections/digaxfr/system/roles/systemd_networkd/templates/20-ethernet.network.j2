@@ -7,6 +7,9 @@ DHCP=no
 {% for macvlan in macvlans %}
 MACVLAN={{ macvlan.name }}
 {% endfor %}
+{% for macvtap in macvtaps %}
+MACVTAP={{ macvtap.name }}
+{% endfor %}
 
 [IPv6AcceptRA]
 Token=eui64

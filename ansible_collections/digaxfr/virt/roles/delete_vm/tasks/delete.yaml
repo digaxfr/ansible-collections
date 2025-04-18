@@ -11,10 +11,10 @@
   changed_when: true
   failed_when: false
 
-- name: Delete the VM image directory
-  ansible.builtin.file:
-    path: /var/lib/libvirt/images/{{ inventory_hostname }}
-    state: absent
+# Future we can handle data volumes.
+- name: Delete the root volume
+  ansible.builtin.command: >-
+    virsh vol-delete --pool {{ virt_disks[0].pool }} --vol {{ inventory_hostname }}_vda.qcow2
 
 # Supporting disk0 only at the moment because of... laziness.
 - name: Delete the volume (RBD)
@@ -29,3 +29,8 @@
 #  ansible.builtin.command: >-
 #    virsh vol-delete --pool ceph0 --vol {{ inventory_hostname }}-vda
   changed_when: true
+
+- name: Cleanup cloud-init
+  ansible.builtin.file:
+    path: /var/lib/libvirt/cloud-init/{{ inventory_hostname }}
+    state: absent

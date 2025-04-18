@@ -1,9 +1,10 @@
 ---
 - name: Check if VM exists already exists
   ansible.builtin.command: >
-    virsh list --name --all
-  register: _virsh_list
+    virsh dominfo {{ inventory_hostname }}
+  register: _dominfo
+  failed_when: false
 
 - name: Delete the VM
   ansible.builtin.include_tasks: delete.yaml
-  when: 'inventory_hostname in _virsh_list.stdout_lines'
+  when: '_dominfo.rc == 0'

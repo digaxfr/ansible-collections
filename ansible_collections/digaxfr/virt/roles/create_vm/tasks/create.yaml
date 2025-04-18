@@ -1,79 +1,85 @@
 ---
-- name: Create VM image directory
-  ansible.builtin.file:
-    path: /var/lib/libvirt/images/{{ inventory_hostname }}
-    state: directory
-    owner: libvirt-qemu
-    group: libvirt-qemu
-    mode: '0750'
+- name: Clone the base image
+  ansible.builtin.command: >-
+    virsh vol-clone
+      --pool {{ virt_disks[0].pool | default("default") }}
+      --vol {{ virt_base_image["aarch64"] }}
+      --newname {{ inventory_hostname }}_vda.qcow2
+  changed_when: true
 
-- name: Copy base image
-  ansible.builtin.copy:
-#    src: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
-    src: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
-    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2
-    remote_src: true
-    owner: libvirt-qemu
-    group: libvirt-qemu
-    mode: '0750'
-
-#- name: Copy base iamge
-#  when: virt_disks[0].pool == "ceph0" | default(false)
-#  ansible.builtin.command: >-
-#    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
-#      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
-#      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
-#      cp
-#      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
-#      --dest-pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
-#      --image {{ virt_base_image.aarch64 | replace(".qcow2", ".raw") }}
-#      --dest {{ inventory_hostname }}-vda
-##  ansible.builtin.command: >-
-##    virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
-#  changed_when: true
+# Old Ceph things to keep around for now.
+# - name: Copy base iamge
+#   when: virt_disks[0].pool == "ceph0" | default(false)
+#   ansible.builtin.command: >-
+#     rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
+#       -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
+#       --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
+#       cp
+#       --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+#       --dest-pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+#       --image {{ virt_base_image.aarch64 | replace(".qcow2", ".raw") }}
+#       --dest {{ inventory_hostname }}-vda
+# #  ansible.builtin.command: >-
+# #    virsh vol-clone --pool ceph0 --vol debian-12-genericcloud-arm64-20231210-1591.raw --newname {{ inventory_hostname }}-vda
+#   changed_when: true
 
 - name: Resize the root image
-  ansible.builtin.command: >
-    qemu-img resize /var/lib/libvirt/images/{{ inventory_hostname }}/vda.qcow2 {{ virt_disks[0].size_gb }}G
-  changed_when: true
-
-#- name: Resize the root volume
-#  when: virt_disks[0].pool == "ceph0" | default(false)
-#  ansible.builtin.command: >-
-#    rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
-#      -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
-#      --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
-#      resize
-#      --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
-#      --image {{ inventory_hostname }}-vda
-#      --size {{ virt_disks[0].size_gb }}G
-##  ansible.builtin.command: >-
-##     virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
-#  changed_when: true
-
-# These are times where shell module is just the right answer... Refactor me in the future.
-#- name: Grab ceph secret
-#  when: virt_disks[0].pool == "ceph0" | default(false)
-#  ansible.builtin.shell: >-
-#    virsh secret-list | grep ceph-ceph0-secret | cut -f 2 -d ' '
-#  changed_when: false
-#  register: _ceph_secret
-
-- name: Create extra disks
-  when: (virt_disks | length) > 1
   ansible.builtin.command: >-
-    qemu-img create -f qcow2 /var/lib/libvirt/images/{{ inventory_hostname }}/{{ item.name }}.qcow2 {{ item.size_gb }}G
-  loop: '{{ virt_disks[1:] }}'
+    virsh vol-resize
+      --pool {{ hostvars[inventory_hostname].virt_disks[0].pool }}
+      --vol {{ inventory_hostname }}_{{ hostvars[inventory_hostname].virt_disks[0].name }}.qcow2
+      --capacity {{ hostvars[inventory_hostname].virt_disks[0].size_gb }}G
   changed_when: true
+
+# Old Ceph things.
+# - name: Resize the root volume
+#   when: virt_disks[0].pool == "ceph0" | default(false)
+#   ansible.builtin.command: >-
+#     rbd -c /etc/ceph/ceph.{{ virt_disks[0].pool }}.conf
+#       -k /etc/ceph/ceph.{{ virt_disks[0].pool }}.{{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}.keyring
+#       --id {{ libvirt_storage_pools.rbd[virt_disks[0].pool].ceph_auth_client_name }}
+#       resize
+#       --pool {{ libvirt_storage_pools.rbd[virt_disks[0].pool].osd_pool }}
+#       --image {{ inventory_hostname }}-vda
+#       --size {{ virt_disks[0].size_gb }}G
+# #  ansible.builtin.command: >-
+# #     virsh vol-resize --pool ceph0 --vol {{ inventory_hostname }}-vda --capacity {{ virt_disks[0].size_gb }}G
+#   changed_when: true
+#
+#  These are times where shell module is just the right answer... Refactor me in the future.
+# - name: Grab ceph secret
+#   when: virt_disks[0].pool == "ceph0" | default(false)
+#   ansible.builtin.shell: >-
+#     virsh secret-list | grep ceph-ceph0-secret | cut -f 2 -d ' '
+#   changed_when: false
+#   register: _ceph_secret
+
+# - name: Create extra disks
+#   when: (virt_disks | length) > 1
+#   ansible.builtin.command: >-
+#     qemu-img create -f qcow2 /var/lib/libvirt/images/{{ inventory_hostname }}/{{ item.name }}.qcow2 {{ item.size_gb }}G
+#   loop: '{{ virt_disks[1:] }}'
+#   changed_when: true
 
 - name: Generate dns-api token
   ansible.builtin.import_tasks: dns_api.yaml
-  when: use_dns_api | default(true)
+  when: use_dns_api | default(false)
+
+- name: Create cloud-init directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: libvirt-qemu
+    group: libvirt-qemu
+    mode: "0750"
+  loop:
+    - /var/lib/libvirt/cloud-init
+    - /var/lib/libvirt/cloud-init/{{ inventory_hostname }}
 
 - name: Template out cloud-init files
   ansible.builtin.template:
     src: '{{ item }}.j2'
-    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/{{ item }}
+    dest: /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/{{ item }}
     owner: libvirt-qemu
     group: libvirt-qemu
     mode: '0640'
@@ -84,31 +90,61 @@
 
 - name: Generate ISO image
   ansible.builtin.command: >
-    mkisofs -o /var/lib/libvirt/images/{{ inventory_hostname }}/cloud-init.iso -V cidata -J -r
-    /var/lib/libvirt/images/{{ inventory_hostname }}/user-data
-    /var/lib/libvirt/images/{{ inventory_hostname }}/meta-data
-    /var/lib/libvirt/images/{{ inventory_hostname }}/network-config
+    mkisofs -o /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/cloud-init.iso -V cidata -J -r
+    /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/user-data
+    /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/meta-data
+    /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/network-config
   changed_when: true
 
-- name: Template out domain file
-  ansible.builtin.template:
-    src: domain.xml.j2
-#    src: domain_rbd.xml.j2
-    dest: /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
-    owner: libvirt-qemu
-    group: libvirt-qemu
-    mode: '0640'
+# Left here for historical. Will try to prefer to use virt-install instead.
+# - name: Template out domain file
+#   ansible.builtin.template:
+#     src: domain.xml.j2
+#     # src: domain_rbd.xml.j2
+#     dest: /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
+#     owner: libvirt-qemu
+#     group: libvirt-qemu
+#     mode: '0640'
+#
+# - name: Copy NVRAM file
+#   ansible.builtin.copy:
+#     src: /usr/share/AAVMF/AAVMF_VARS.fd
+#     dest: /var/lib/libvirt/qemu/nvram/{{ inventory_hostname }}_VARS.fd
+#     remote_src: true
+#     owner: libvirt-qemu
+#     group: libvirt-qemu
+#     mode: '0660'
+#
+# - name: Define domain
+#   ansible.builtin.command: >
+#     virsh define /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
+#   changed_when: true
 
-- name: Copy NVRAM file
+# Future: Multi-disk is supported in virt-install by passing in --disk multiple times.
+- name: Generate XML via virt-install
+  ansible.builtin.command: >-
+    virt-install
+      --print-xml 1
+      --hvm
+      --name {{ inventory_hostname }}
+      --memory {{ virt_memory_mb }}
+      --vcpus {{ virt_cpu }}
+      --osinfo debian11
+      --disk /var/lib/libvirt/images/{{ inventory_hostname }}_vda.qcow2
+      --network network={{ virt_networks[0].network }}
+      --cdrom /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/cloud-init.iso
+  changed_when: true
+  register: _virt_install
+
+- name: Template out xml
   ansible.builtin.copy:
-    src: /usr/share/AAVMF/AAVMF_VARS.fd
-    dest: /var/lib/libvirt/qemu/nvram/{{ inventory_hostname }}_VARS.fd
-    remote_src: true
-    owner: libvirt-qemu
-    group: libvirt-qemu
-    mode: '0660'
+    content: "{{ _virt_install.stdout }}"
+    dest: /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/domain.xml
+    owner: root
+    group: root
+    mode: "0640"
 
-- name: Define domain
-  ansible.builtin.command: >
-    virsh define /var/lib/libvirt/images/{{ inventory_hostname }}/generated_domain.xml
+- name: Define the domain
+  ansible.builtin.command: >-
+    virsh define /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/domain.xml
   changed_when: true

@@ -1,5 +1,6 @@
 ---
 macvlans: []
+macvtaps: []
 
 netplan_files:
   - /etc/netplan/10-dhcp-all-interfaces.yaml
