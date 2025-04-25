@@ -3,7 +3,7 @@
   ansible.builtin.command: >-
     virsh vol-clone
       --pool {{ virt_disks[0].pool | default("default") }}
-      --vol {{ virt_base_image["aarch64"] }}
+      --vol {{ virt_base_image[ansible_architecture] }}
       --newname {{ inventory_hostname }}_vda.qcow2
   changed_when: true
 
@@ -125,6 +125,7 @@
   ansible.builtin.command: >-
     virt-install
       --print-xml 1
+      --boot uefi
       --hvm
       --name {{ inventory_hostname }}
       --memory {{ virt_memory_mb }}

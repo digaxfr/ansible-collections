@@ -4,6 +4,13 @@
     install_recommends: false
     name: '{{ virt_packages }}'
     state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install packages
+  community.general.pacman:
+    name: "{{ virt_packages_archlinux }}"
+    state: present
+  when: ansible_os_family == "Archlinux"
 
 - name: Configure systemd
   ansible.builtin.systemd:

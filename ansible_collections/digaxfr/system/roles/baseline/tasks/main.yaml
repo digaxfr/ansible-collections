@@ -15,12 +15,19 @@
   ansible.builtin.apt:
     name: "{{ baseline_debian_packages }}"
     state: present
-  when: ansible_distribution == 'Debian'
+  when: ansible_distribution == "Debian"
+
+- name: Install base packages (Archlinux)
+  community.general.pacman:
+    name: "{{ baseline_archlinux_packages }}"
+    state: present
+  when: ansible_distribution == "Archlinux"
 
 - name: Discover unwanted systemd services
   ansible.builtin.command:
     systemctl list-unit-files {{ disable_systemd_services | join(" ") }} -o json
   changed_when: false
+  failed_when: false
   register: _disable_systemd_services
 
 - name: Disable unwanted systemd services

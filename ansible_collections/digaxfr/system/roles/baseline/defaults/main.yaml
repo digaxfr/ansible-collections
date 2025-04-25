@@ -18,6 +18,12 @@ baseline_debian_packages:
   - tcpdump
   - vim
 
+baseline_archlinux_packages:
+  - curl
+  - nftables
+  - sysstat
+  - zram-generator
+
 disable_systemd_services:
   - armbian-ramlog.service
   - armbian-zram-config.service

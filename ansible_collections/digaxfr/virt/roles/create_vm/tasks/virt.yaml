@@ -4,8 +4,8 @@
 
 - name: Ensure base image exists
   ansible.builtin.stat:
-    # path: /var/lib/libvirt/images/{{ virt_base_image[hostvars[virt_host].ansible_architecture] }}
-    path: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
+    path: /var/lib/libvirt/images/{{ virt_base_image[ansible_architecture] }}
+    # path: /var/lib/libvirt/images/{{ virt_base_image["aarch64"] }}
   register: _stat_image
 
 - name: Fail if image is missing

@@ -13,16 +13,16 @@ flush ruleset
 
 # Table and chain creation
 add table ip6 filter
-add chain ip6 filter input { type filter hook input priority filter; policy accept; }
-add chain ip6 filter forward { type filter hook forward priority filter; policy accept; }
+add chain ip6 filter input { type filter hook input priority filter; policy drop; }
+add chain ip6 filter forward { type filter hook forward priority filter; policy drop; }
 
 add table ip6 nat
 add chain ip6 nat postrouting { type nat hook postrouting priority srcnat ; }
 add chain ip6 nat prerouting { type nat hook prerouting priority dstnat; }
 
 add table ip filter
-add chain ip filter input { type filter hook input priority filter; policy accept; }
-add chain ip filter forward { type filter hook forward priority filter; policy accept; }
+add chain ip filter input { type filter hook input priority filter; policy drop; }
+add chain ip filter forward { type filter hook forward priority filter; policy drop; }
 
 # Define sets
 add set ip6 filter int_networks { type ipv6_addr; flags interval; comment "Internal networks"; }
@@ -74,20 +74,12 @@ add rule ip6 filter input tcp dport 22 ip6 saddr @int_networks counter accept co
 # add rule ip6 filter input limit rate 6/minute burst 5 packets counter log prefix "Drop ip6 Input: " comment "Log sample of input drops"
 # add rule ip filter input limit rate 6/minute burst 5 packets counter log prefix "Drop ip4 Input: " comment "Log sample of input drops"
 
-# Explicit drops
-# TODO: I think we can make these a separate chain and priority so that these can always be last.
-add rule ip6 filter input counter drop comment "Explicit drop"
-add rule ip filter input counter drop comment "Explicit drop"
-
 
 ### FILTER FORWARD
 # add rule ip6 filter forward iifname clat oifname @ifname_primary counter accept
 # add rule ip6 filter forward iifname @ifname_primary oifname clat counter accept
 # add rule ip6 filter forward limit rate 6/minute burst 5 packets counter log prefix "Drop ip6 Forward: " comment "Log sample of forward drops"
-add rule ip6 filter forward counter drop comment "Explicit drop"
-
 # add rule ip filter forward limit rate 6/minute burst 5 packets counter log prefix "Drop ip4 Forward: " comment "Log sample of forward drops"
-add rule ip filter forward counter drop comment "Explicit drop"
 
 # Old/unused references
 #
