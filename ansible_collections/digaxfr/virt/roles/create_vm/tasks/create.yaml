@@ -121,6 +121,7 @@
 #   changed_when: true
 
 # Future: Multi-disk is supported in virt-install by passing in --disk multiple times.
+# Had to explicitly set the cdrom via disk flag and force it to be scsi.
 - name: Generate XML via virt-install
   ansible.builtin.command: >-
     virt-install
@@ -130,10 +131,10 @@
       --name {{ inventory_hostname }}
       --memory {{ virt_memory_mb }}
       --vcpus {{ virt_cpu }}
-      --osinfo debian11
+      --osinfo debian13
       --disk /var/lib/libvirt/images/{{ inventory_hostname }}_vda.qcow2
       --network network={{ virt_networks[0].network }}
-      --cdrom /var/lib/libvirt/cloud-init/{{ inventory_hostname }}/cloud-init.iso
+      --disk path=/var/lib/libvirt/cloud-init/{{ inventory_hostname }}/cloud-init.iso,device=cdrom,bus=scsi
   changed_when: true
   register: _virt_install
 
