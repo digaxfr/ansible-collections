@@ -1,14 +1,23 @@
 # Ansible managed
 [Match]
-Name=en*
+Name={{ ansible_default_ipv6.interface }}
 
 [Network]
 DHCP=no
 {% for macvlan in macvlans %}
+{% if macvlan.parent == ansible_default_ipv6.interface %}
 MACVLAN={{ macvlan.name }}
+{% endif %}
 {% endfor %}
 {% for macvtap in macvtaps %}
+{% if macvtap.parent == ansible_default_ipv6.interface %}
 MACVTAP={{ macvtap.name }}
+{% endif %}
+{% endfor %}
+{% for vlan in vlans %}
+{% if vlan.parent == ansible_default_ipv6.interface %}
+VLAN={{ vlan.parent }}.{{ vlan.id }}
+{% endif %}
 {% endfor %}
 
 [IPv6AcceptRA]

@@ -27,6 +27,26 @@
     mode: "0644"
   notify: Restart systemd-networkd
 
+- name: Template out vlan netdev
+  ansible.builtin.template:
+    src: 25-vlan.netdev.j2
+    dest: /etc/systemd/network/25-vlan-{{ item.parent }}-{{ item.id }}.netdev
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ vlans }}"
+  notify: Restart systemd-networkd
+
+- name: Template out vlan network
+  ansible.builtin.template:
+    src: 25-vlan.network.j2
+    dest: /etc/systemd/network/25-vlan-{{ item.parent }}-{{ item.id }}.network
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ vlans }}"
+  notify: Restart systemd-networkd
+
 - name: Template out macvlan netdev
   ansible.builtin.template:
     src: 30-macvlan.netdev.j2

@@ -1,0 +1,19 @@
+# Ansible managed
+[Match]
+Name={{ item.parent }}.{{ item.id }}
+
+[Network]
+DHCP=no
+{% if not item.managed %}
+IPv6AcceptRA=no
+{% endif %}
+{% for macvlan in macvlans %}
+{% if macvlan.parent == (item.parent ~ "." ~ item.id) %}
+MACVLAN={{ macvlan.name }}
+{% endif %}
+{% endfor %}
+{% for macvtap in macvtaps %}
+{% if macvtap.parent == (item.parent ~ "." ~ item.id) %}
+MACVTAP={{ macvtap.name }}
+{% endif %}
+{% endfor %}
