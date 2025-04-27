@@ -1,6 +1,6 @@
 <network>
   <name>{{ _idx_network.key }}</name>
   <forward mode="bridge">
-    <interface dev="{{ ansible_default_ipv6.interface }}"/>
+    <interface dev="{{ _idx_network.value.interface }}"/>
   </forward>
 </network>
