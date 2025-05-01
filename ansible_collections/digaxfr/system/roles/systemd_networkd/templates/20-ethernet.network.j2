@@ -1,4 +1,5 @@
 # Ansible managed
+# Note that this file evolved over time based on different needs. It's messy.
 [Match]
 Name={{ ansible_default_ipv6.interface }}
 
@@ -18,6 +19,14 @@ MACVTAP={{ macvtap.name }}
 {% if vlan.parent == ansible_default_ipv6.interface %}
 VLAN={{ vlan.parent }}.{{ vlan.id }}
 {% endif %}
+{% endfor %}
+
+{% for bridge in bridges %}
+{% for br_int in bridge.interfaces %}
+{% if br_int == ansible_default_ipv6.interface %}
+Bridge={{ bridge.name }}
+{% endif %}
+{% endfor %}
 {% endfor %}
 
 [IPv6AcceptRA]

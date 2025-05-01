@@ -1,0 +1,10 @@
+# Ansible managed
+[Match]
+Name={{ item.name }}
+
+[Network]
+DHCP=no
+
+[IPv6AcceptRA]
+Token=eui64
+Token=prefixstable
