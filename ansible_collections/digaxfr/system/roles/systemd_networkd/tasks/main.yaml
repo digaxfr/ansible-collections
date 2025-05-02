@@ -18,80 +18,102 @@
     state: absent
   when: ansible_os_family == "Debian"
 
-- name: Template out ethernet configuration
-  ansible.builtin.template:
-    src: 20-ethernet.network.j2
-    dest: /etc/systemd/network/20-ethernet.network
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Restart systemd-networkd
-
-- name: Template out vlan netdev
-  ansible.builtin.template:
-    src: 25-vlan.netdev.j2
-    dest: /etc/systemd/network/25-vlan-{{ item.parent }}-{{ item.id }}.netdev
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ vlans }}"
-  notify: Restart systemd-networkd
-
-- name: Template out vlan network
-  ansible.builtin.template:
-    src: 25-vlan.network.j2
-    dest: /etc/systemd/network/25-vlan-{{ item.parent }}-{{ item.id }}.network
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ vlans }}"
-  notify: Restart systemd-networkd
-
-- name: Template out macvlan netdev
-  ansible.builtin.template:
-    src: 30-macvlan.netdev.j2
-    dest: /etc/systemd/network/30-macvlan-{{ item.name }}.netdev
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ macvlans }}"
-  notify: Restart systemd-networkd
-
-- name: Template out macvlan network
-  ansible.builtin.template:
-    src: 30-macvlan.network.j2
-    dest: /etc/systemd/network/30-macvlan-{{ item.name }}.network
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ macvlans }}"
-  when: 'item.managed'
-  notify: Restart systemd-networkd
-
-- name: Template out macvtap netdev
-  ansible.builtin.template:
-    src: 31-macvtap.netdev.j2
-    dest: /etc/systemd/network/31-macvtap-{{ item.name }}.netdev
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ macvtaps }}"
-  notify: Restart systemd-networkd
-
-- name: Template out macvtap network
-  ansible.builtin.template:
-    src: 31-macvtap.network.j2
-    dest: /etc/systemd/network/31-macvtap-{{ item.name }}.network
-    owner: root
-    group: root
-    mode: "0644"
-  loop: "{{ macvtaps }}"
-  when: 'item.managed'
-  notify: Restart systemd-networkd
+# This whole section will get refactored.
+# There is also a chicken-egg problem at the moment on my single-NIC host when using bridges.
+# - name: Template out ethernet configuration
+#   ansible.builtin.template:
+#     src: 20-ethernet.network.j2
+#     dest: /etc/systemd/network/20-ethernet.network
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   notify: Restart systemd-networkd
+#
+# - name: Template out vlan netdev
+#   ansible.builtin.template:
+#     src: 25-vlan.netdev.j2
+#     dest: /etc/systemd/network/25-vlan-{{ item.parent }}-{{ item.id }}.netdev
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ vlans }}"
+#   notify: Restart systemd-networkd
+#
+# - name: Template out vlan network
+#   ansible.builtin.template:
+#     src: 25-vlan.network.j2
+#     dest: /etc/systemd/network/25-vlan-{{ item.parent }}-{{ item.id }}.network
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ vlans }}"
+#   notify: Restart systemd-networkd
+#
+# - name: Template out bridge netdev
+#   ansible.builtin.template:
+#     src: 20-bridge.netdev.j2
+#     dest: /etc/systemd/network/20-bridge-{{ item.name }}.netdev
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ bridges }}"
+#   notify: Restart systemd-networkd
+#
+# - name: Template out bridge network
+#   ansible.builtin.template:
+#     src: 20-bridge.network.j2
+#     dest: /etc/systemd/network/20-bridge-{{ item.name }}.network
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ bridges }}"
+#   notify: Restart systemd-networkd
+#
+# - name: Template out macvlan netdev
+#   ansible.builtin.template:
+#     src: 30-macvlan.netdev.j2
+#     dest: /etc/systemd/network/30-macvlan-{{ item.name }}.netdev
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ macvlans }}"
+#   notify: Restart systemd-networkd
+#
+# - name: Template out macvlan network
+#   ansible.builtin.template:
+#     src: 30-macvlan.network.j2
+#     dest: /etc/systemd/network/30-macvlan-{{ item.name }}.network
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ macvlans }}"
+#   when: 'item.managed'
+#   notify: Restart systemd-networkd
+#
+# - name: Template out macvtap netdev
+#   ansible.builtin.template:
+#     src: 31-macvtap.netdev.j2
+#     dest: /etc/systemd/network/31-macvtap-{{ item.name }}.netdev
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ macvtaps }}"
+#   notify: Restart systemd-networkd
+#
+# - name: Template out macvtap network
+#   ansible.builtin.template:
+#     src: 31-macvtap.network.j2
+#     dest: /etc/systemd/network/31-macvtap-{{ item.name }}.network
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   loop: "{{ macvtaps }}"
+#   when: 'item.managed'
+#   notify: Restart systemd-networkd
 
 - name: Ensure resolve.conf points to systemd-resolved
   ansible.builtin.file:
-    path: /run/systemd/resolve/stub-resolv.conf
+    src: /run/systemd/resolve/stub-resolv.conf
     dest: /etc/resolv.conf
     state: link
 

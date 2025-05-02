@@ -1,0 +1,18 @@
+<network>
+  <name>{{ _idx_network.key }}</name>
+  <forward mode='bridge'/>
+  <bridge name='{{ _idx_network.value.interface }}'/>
+{% for portgroup in _idx_network.value.portgroups %}
+  <portgroup name='{{ portgroup }}'>
+    <vlan>
+{% for vlan in _idx_network.value.portgroups[portgroup]["vlans"] %}
+{% if "native_mode" in vlan %}
+      <tag id='{{ vlan.id }}' nativeMode='{{ vlan.native_mode }}'/>
+{% else %}
+      <tag id='{{ vlan.id }}'/>
+{% endif %}
+{% endfor %}
+    </vlan>
+  </portgroup>
+{% endfor %}
+</network>
